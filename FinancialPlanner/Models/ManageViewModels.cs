@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNet.Identity;
 using Microsoft.Owin.Security;
+using System;
 
 namespace FinancialPlanner.Models
 {
@@ -56,6 +57,38 @@ namespace FinancialPlanner.Models
         [Display(Name = "Confirm new password")]
         [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
+    }
+
+    public class ChangeUserInfoViewModel
+    {
+        [Required]
+        [DataType(DataType.Text)]
+        [Display(Name = "First Name")]
+        public string FirstName { get; set; }
+
+        [Required]
+        [DataType(DataType.Text)]
+        [Display(Name = "Last Name")]
+        public string LastName { get; set; }
+
+        [Required]
+        [DataType(DataType.Text)]
+        [Display(Name = "Display Name")]
+        public string DisplayName { get; set; }
+
+        [Display(Name = "Age")]
+        public int Age { get; set; }
+
+        [DataType(DataType.Date)]
+        [Display(Name = "Date Of Birth")]
+        public DateTime? DoB { get; set; }
+
+    }
+
+    public class LeaveHouseholdViewModel
+    {
+        public int HouseholdId { get; set; }
+        public Household Household { get; set; }
     }
 
     public class AddPhoneNumberViewModel

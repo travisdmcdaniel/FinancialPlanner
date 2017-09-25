@@ -1,0 +1,325 @@
+﻿@model FinancialPlanner.Models.AllTransactionsVM
+@using Microsoft.AspNet.Identity;
+@using FinancialPlanner.Helpers;
+@{
+    ViewBag.Title = "All Account Transactions";
+}
+
+<h2>All Account Transactions for @Model.AccountName</h2>
+<h4><a href="@Url.Action("Index", "Home")">Return To Dashboard</a></h4>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <ul class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#transactions">Transactions</a></li>
+                <li><a data-toggle="tab" href="#deposits">Deposits</a></li>
+            </ul>
+
+            <div class="tab-content">
+                <div id="transactions" class="tab-pane fade in active">
+                    <br />
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Budget Item</th>
+                                <th>Entered By</th>
+                                <th>Amount</th>
+                                <th class="nosort"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var transaction in Model.Transactions)
+                            {
+                                <tr>
+                                    <td>@transaction.Date.ToString("MM-dd-yyyy")</td>
+                                    <td>@transaction.Date.ToShortTimeString()</td>
+                                    <td>@transaction.BudgetItem.Name</td>
+                                    <td>@transaction.EnteredBy.FullName</td>
+                                    @if (transaction.ReconciledAmount > 0.00m)
+                                    {
+                                        <td>@String.Format("{0:C2}", @transaction.ReconciledAmount)</td>
+                                    }
+                                    else
+                                    {
+                                        <td>@String.Format("{0:C2}", @transaction.Amount)</td>
+                                    }
+                                    <td>
+                                        <a href="#transactionDetailsModal_@transaction.Id" data-toggle="modal" class="transaction-link">Reconcile</a>
+                                        <div class="modal fade" id="transactionDetailsModal_@transaction.Id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="text-align:center;">
+                                            <div class="modal-dialog" role="document" style="max-width:60% !important;width:auto !important;">
+                                                <div class="modal-content" style="text-align:justify;">
+                                                    <div class="modal-header">
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                                        <h4 class="modal-title" id="myModalLabel">Transaction Details</h4>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="row">
+                                                            <div class="col-sm-4">
+                                                                <p>
+                                                                    These are all of the details for the selected transaction.  If you need to reconcile this transaction, simply click on the reconcile button.
+                                                                </p>
+                                                                <button type="button" data-target="#reconcileTransaction_@transaction.Id" data-toggle="collapse">Reconcile</button>
+                                                            </div>
+                                                            <div class="col-sm-4">
+                                                                <span style="float:left;"><strong>Budget:</strong></span><span style="float:right;">@transaction.BudgetItem.Budget.Name</span><div class="clearfix"></div><br />
+                                                                <span style="float:left;"><strong>Budget Item:</strong></span><span style="float:right;">@transaction.BudgetItem.Name</span><div class="clearfix"></div>
+                                                            </div>
+                                                            <div class="col-sm-4">
+                                                                <span style="float:left;"><strong>Entered On:</strong></span><span style="float:right;">@transaction.Date.ToShortDateString() <strong>at</strong> @transaction.Date.ToShortTimeString()</span><div class="clearfix"></div><br />
+                                                                <span style="float:left;"><strong>Entered By:</strong></span><span style="float:right;">@transaction.EnteredBy.FullName</span><div class="clearfix"></div><br />
+                                                                <span style="float:left;"><strong>Transaction Amount:</strong></span><span style="float:right;">@String.Format("{0:C2}", @Utilities.getTrueTransactionAmount(transaction.Id))</span><div class="clearfix"></div>
+                                                            </div>
+                                                        </div>
+                                                        <br />
+                                                        <div class="row">
+                                                            <div class="col-sm-12">
+                                                                <div class="panel-group">
+                                                                    <div id="reconcileTransaction_@transaction.Id" class="panel panel-default panel-collapse collapse">
+                                                                        <div class="panel-heading">
+                                                                            <button type="button" class="close" data-toggle="collapse" data-target="#reconcileTransaction_@transaction.Id">&times;</button>
+                                                                            <h4 class="panel-title">
+                                                                                Reconcile This Transaction
+                                                                            </h4>
+                                                                        </div>
+                                                                        <div>
+                                                                            @using (Html.BeginForm("Reconcile", "Transactions", new { accountId = transaction.AccountId, transactionId = transaction.Id, amount = transaction.Amount }, FormMethod.Post))
+                                                                            {
+                                                                                <div class="panel-body">
+
+                                                                                    @Html.AntiForgeryToken()
+                                                                                    <div class="row">
+                                                                                        <div class="col-sm-4">
+                                                                                            @if (transaction.ReconciledAmount > 0)
+                                                                                            {
+                                                                                                @Html.Label("Original Amount")
+                                                                                                <div class="input-group">
+                                                                                                    <span class="input-group-addon">$</span>
+                                                                                                    @*@Html.EditorFor(Model => Model.TransactionToCreate.Amount, new { htmlAttributes = new { @class = "form-control", style = "max-width:100%;width:100%;cursor:default;", placeholder = @transaction.Amount, value = @transaction.Amount, type = "number", disabled = "disabled" } })*@
+                                                                                                    <input class="form-control" value="@transaction.Amount" placeholder="@transaction.Amount" disabled="disabled" style="max-width:100%;width:100%;cursor:default;" type="number" />
+                                                                                                </div>
+                                                                                            }
+                                                                                        </div>
+                                                                                        <div class="col-sm-4">
+                                                                                            @if (transaction.ReconciledAmount > 0)
+                                                                                            {
+                                                                                                @Html.Label("Previously Reconciled Amount")
+                                                                                                <div class="input-group">
+                                                                                                    <span class="input-group-addon">$</span>
+                                                                                                    @*@Html.EditorFor(Model => Model.TransactionToCreate.Amount, new { htmlAttributes = new { @class = "form-control", style = "max-width:100%;width:100%;cursor:default;", placeholder = @transaction.ReconciledAmount, value = @transaction.ReconciledAmount, type = "number", disabled = "disabled" } })*@
+                                                                                                    <input class="form-control" value="@transaction.ReconciledAmount" placeholder="@transaction.ReconciledAmount" disabled="disabled" style="max-width:100%;width:100%;cursor:default;" type="number" />
+                                                                                                </div>
+                                                                                            }
+                                                                                            else
+                                                                                            {
+                                                                                                @Html.Label("Original Amount")
+                                                                                                <div class="input-group">
+                                                                                                    <span class="input-group-addon">$</span>
+                                                                                                    @*@Html.EditorFor(Model => Model.TransactionToCreate.Amount, new { htmlAttributes = new { @class = "form-control", style = "max-width:100%;width:100%;cursor:default;", placeholder = @transaction.Amount, value = @transaction.Amount, type = "number", disabled = "disabled" } })*@
+                                                                                                    <input class="form-control" value="@transaction.Amount" placeholder="@transaction.Amount" disabled="disabled" style="max-width:100%;width:100%;cursor:default;" type="number" />
+                                                                                                </div>
+                                                                                            }
+                                                                                        </div>
+                                                                                        <div class="col-sm-4">
+                                                                                            @Html.Label("Reconciled Amount")
+                                                                                            <div class="input-group">
+                                                                                                <span class="input-group-addon">$</span>
+                                                                                                <input class="form-control" type="number" name="reconciled" placeholder="Reconciled Balace" style="max-width:100%;width:100%;" step=".01" min="0" />
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="panel-footer">
+                                                                                    <div class="row">
+                                                                                        <div class="col-sm-12">
+                                                                                            <input style="float:right;" type="submit" value="Submit Reconciliation" class="btn btn-default" />
+                                                                                            <div class="clearfix"></div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            }
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div id="deposits" class="tab-pane fade">
+                    <br />
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Source</th>
+                                <th>Entered By</th>
+                                <th>Amount</th>
+                                <th class="nosort"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var deposit in Model.Deposits)
+                            {
+                                <tr>
+                                    <td>@deposit.Date.ToString("MM-dd-yyyy")</td>
+                                    <td>@deposit.Date.ToShortTimeString()</td>
+                                    <td>@deposit.Source</td>
+                                    <td>@deposit.EnteredBy.FullName</td>
+                                    @if (deposit.ReconciledAmount > 0.00m)
+                                    {
+                                        <td>@String.Format("{0:C2}", @deposit.ReconciledAmount)</td>
+                                    }
+                                    else
+                                    {
+                                        <td>@String.Format("{0:C2}", @deposit.Amount)</td>
+                                    }
+                                    <td>
+                                        <a href="#depositDetailsModal_@deposit.Id" data-toggle="modal" class="transaction-link">Reconcile</a>
+                                        <div class="modal fade" id="depositDetailsModal_@deposit.Id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="text-align:center;">
+                                            <div class="modal-dialog" role="document" style="max-width:60% !important;width:auto !important;">
+                                                <div class="modal-content" style="text-align:justify;">
+                                                    <div class="modal-header">
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                                        <h4 class="modal-title" id="myModalLabel">Deposit Details</h4>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="row">
+                                                            <div class="col-sm-4">
+                                                                <p>
+                                                                    These are all of the details for the selected transaction.  If you need to reconcile this transaction, simply click on the reconcile button.
+                                                                </p>
+                                                                <button type="button" data-target="#reconcileTransaction_@deposit.Id" data-toggle="collapse">Reconcile</button>
+                                                            </div>
+                                                            <div class="col-sm-4">
+                                                                <span style="float:left;"><strong>Source:</strong></span><span style="float:right;">@deposit.Source</span><div class="clearfix"></div>
+                                                            </div>
+                                                            <div class="col-sm-4">
+                                                                <span style="float:left;"><strong>Entered On:</strong></span><span style="float:right;">@deposit.Date.ToShortDateString() <strong>at</strong> @deposit.Date.ToShortTimeString()</span><div class="clearfix"></div><br />
+                                                                <span style="float:left;"><strong>Entered By:</strong></span><span style="float:right;">@deposit.EnteredBy.FullName</span><div class="clearfix"></div><br />
+                                                                <span style="float:left;"><strong>Transaction Amount:</strong></span><span style="float:right;">@String.Format("{0:C2}", @Utilities.getTrueDepositAmount(deposit.Id))</span><div class="clearfix"></div>
+                                                            </div>
+                                                        </div>
+                                                        <br />
+                                                        <div class="row">
+                                                            <div class="col-sm-12">
+                                                                <div class="panel-group">
+                                                                    <div id="reconcileTransaction_@deposit.Id" class="panel panel-default panel-collapse collapse">
+                                                                        <div class="panel-heading">
+                                                                            <button type="button" class="close" data-toggle="collapse" data-target="#reconcileTransaction_@deposit.Id">&times;</button>
+                                                                            <h4 class="panel-title">
+                                                                                Reconcile This Transaction
+                                                                            </h4>
+                                                                        </div>
+                                                                        <div>
+                                                                            @using (Html.BeginForm("Reconcile", "Deposits", new { accountId = deposit.AccountId, depositId = deposit.Id, amount = deposit.Amount }, FormMethod.Post))
+                                                                            {
+                                                                                <div class="panel-body">
+
+                                                                                    @Html.AntiForgeryToken()
+                                                                                    <div class="row">
+                                                                                        <div class="col-sm-4">
+                                                                                            @if (deposit.ReconciledAmount > 0)
+                                                                                            {
+                                                                                                @Html.Label("Original Amount")
+                                                                                                <div class="input-group">
+                                                                                                    <span class="input-group-addon">$</span>
+                                                                                                    @*@Html.EditorFor(Model => Model.DepositToCreate.Amount, new { htmlAttributes = new { @class = "form-control", style = "max-width:100%;width:100%;cursor:default;", placeholder = @deposit.Amount, value = @deposit.Amount, type = "number", disabled = "disabled" } })*@
+                                                                                                    <input class="form-control" style="max-width:100%;width:100%;cursor:default;" placeholder="@deposit.Amount" value="@deposit.Amount" disabled="disabled" type="number" />
+                                                                                                </div>
+                                                                                            }
+                                                                                        </div>
+                                                                                        <div class="col-sm-4">
+                                                                                            @if (deposit.ReconciledAmount > 0)
+                                                                                            {
+                                                                                                @Html.Label("Previously Reconciled Amount")
+                                                                                                <div class="input-group">
+                                                                                                    <span class="input-group-addon">$</span>
+                                                                                                    @*@Html.EditorFor(Model => Model.DepositToCreate.Amount, new { htmlAttributes = new { @class = "form-control", style = "max-width:100%;width:100%;cursor:default;", placeholder = @deposit.ReconciledAmount, value = @deposit.ReconciledAmount, type = "number", disabled = "disabled" } })*@
+                                                                                                    <input class="form-control" style="max-width:100%;width:100%;cursor:default;" placeholder="@deposit.ReconciledAmount" value="@deposit.ReconciledAmount" disabled="disabled" type="number" />
+                                                                                                </div>
+                                                                                            }
+                                                                                            else
+                                                                                            {
+                                                                                                @Html.Label("Original Amount")
+                                                                                                <div class="input-group">
+                                                                                                    <span class="input-group-addon">$</span>
+                                                                                                    @*@Html.EditorFor(Model => Model.DepositToCreate.Amount, new { htmlAttributes = new { @class = "form-control", style = "max-width:100%;width:100%;cursor:default;", placeholder = @deposit.Amount, value = @deposit.Amount, type = "number", disabled = "disabled" } })*@
+                                                                                                    <input class="form-control" style="max-width:100%;width:100%;cursor:default;" placeholder="@deposit.Amount" value="@deposit.Amount" disabled="disabled" type="number" />
+                                                                                                </div>
+                                                                                            }
+                                                                                        </div>
+                                                                                        <div class="col-sm-4">
+                                                                                            @Html.Label("Reconciled Amount")
+                                                                                            <div class="input-group">
+                                                                                                <span class="input-group-addon">$</span>
+                                                                                                <input class="form-control" type="number" name="reconciled" placeholder="Reconciled Balace" style="max-width:100%;width:100%;" step=".01" min="0" />
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                                                                <div class="panel-footer">
+                                                                                                                                    <div class="row">
+                                                                                                                                        <div class="col-sm-12">
+                                                                                                                                            <input style="float:right;" type="submit" value="Submit Reconciliation" class="btn btn-default" />
+                                                                                                                                            <div class="clearfix"></div>
+                                                                                                                                        </div>
+                                                                                                                                    </div>
+                                                                                                                                </div>
+                                                                            }
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<option id="entrance" value="bounceInDown"></option>
+<option id="exit" value="fadeOutUpBig"></option>
+
+@section scripts
+{
+    <script type="text/javascript">
+        function testAnim(x) {
+            $('.modal .modal-dialog').attr('class', 'modal-dialog  ' + x + '  animated');
+        };
+        $('.modal').on('show.bs.modal', function (e) {
+            var anim = $('#entrance').val();
+            testAnim(anim);
+        })
+        $('.modal').on('hide.bs.modal', function (e) {
+            var anim = $('#exit').val();
+            testAnim(anim);
+        })
+    </script>
+}

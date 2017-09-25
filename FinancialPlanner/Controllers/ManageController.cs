@@ -7,12 +7,16 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using FinancialPlanner.Models;
+using Microsoft.Ajax.Utilities;
+using System.Net;
+using System.Data.Entity;
 
 namespace FinancialPlanner.Controllers
 {
     [Authorize]
     public class ManageController : Controller
     {
+        private ApplicationDbContext db = new ApplicationDbContext();
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
 
@@ -52,6 +56,7 @@ namespace FinancialPlanner.Controllers
 
         //
         // GET: /Manage/Index
+        [NoDirectAccess]
         public async Task<ActionResult> Index(ManageMessageId? message)
         {
             ViewBag.StatusMessage =
@@ -61,6 +66,8 @@ namespace FinancialPlanner.Controllers
                 : message == ManageMessageId.Error ? "An error has occurred."
                 : message == ManageMessageId.AddPhoneSuccess ? "Your phone number was added."
                 : message == ManageMessageId.RemovePhoneSuccess ? "Your phone number was removed."
+                : message == ManageMessageId.ChangeUserInfoSuccess ? "Your user info has been updated."
+                : message == ManageMessageId.LeaveHousehold ? "You are no longer a Member of a Household!"
                 : "";
 
             var userId = User.Identity.GetUserId();
@@ -79,6 +86,7 @@ namespace FinancialPlanner.Controllers
         // POST: /Manage/RemoveLogin
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [NoDirectAccess]
         public async Task<ActionResult> RemoveLogin(string loginProvider, string providerKey)
         {
             ManageMessageId? message;
@@ -101,6 +109,7 @@ namespace FinancialPlanner.Controllers
 
         //
         // GET: /Manage/AddPhoneNumber
+        [NoDirectAccess]
         public ActionResult AddPhoneNumber()
         {
             return View();
@@ -110,6 +119,7 @@ namespace FinancialPlanner.Controllers
         // POST: /Manage/AddPhoneNumber
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [NoDirectAccess]
         public async Task<ActionResult> AddPhoneNumber(AddPhoneNumberViewModel model)
         {
             if (!ModelState.IsValid)
@@ -134,6 +144,7 @@ namespace FinancialPlanner.Controllers
         // POST: /Manage/EnableTwoFactorAuthentication
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [NoDirectAccess]
         public async Task<ActionResult> EnableTwoFactorAuthentication()
         {
             await UserManager.SetTwoFactorEnabledAsync(User.Identity.GetUserId(), true);
@@ -149,6 +160,7 @@ namespace FinancialPlanner.Controllers
         // POST: /Manage/DisableTwoFactorAuthentication
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [NoDirectAccess]
         public async Task<ActionResult> DisableTwoFactorAuthentication()
         {
             await UserManager.SetTwoFactorEnabledAsync(User.Identity.GetUserId(), false);
@@ -162,6 +174,7 @@ namespace FinancialPlanner.Controllers
 
         //
         // GET: /Manage/VerifyPhoneNumber
+        [NoDirectAccess]
         public async Task<ActionResult> VerifyPhoneNumber(string phoneNumber)
         {
             var code = await UserManager.GenerateChangePhoneNumberTokenAsync(User.Identity.GetUserId(), phoneNumber);
@@ -173,6 +186,7 @@ namespace FinancialPlanner.Controllers
         // POST: /Manage/VerifyPhoneNumber
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [NoDirectAccess]
         public async Task<ActionResult> VerifyPhoneNumber(VerifyPhoneNumberViewModel model)
         {
             if (!ModelState.IsValid)
@@ -198,6 +212,7 @@ namespace FinancialPlanner.Controllers
         // POST: /Manage/RemovePhoneNumber
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [NoDirectAccess]
         public async Task<ActionResult> RemovePhoneNumber()
         {
             var result = await UserManager.SetPhoneNumberAsync(User.Identity.GetUserId(), null);
@@ -215,6 +230,7 @@ namespace FinancialPlanner.Controllers
 
         //
         // GET: /Manage/ChangePassword
+        [NoDirectAccess]
         public ActionResult ChangePassword()
         {
             return View();
@@ -224,6 +240,7 @@ namespace FinancialPlanner.Controllers
         // POST: /Manage/ChangePassword
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [NoDirectAccess]
         public async Task<ActionResult> ChangePassword(ChangePasswordViewModel model)
         {
             if (!ModelState.IsValid)
@@ -245,7 +262,114 @@ namespace FinancialPlanner.Controllers
         }
 
         //
+        // GET: /Manage/ChangeUserInfo
+        [NoDirectAccess]
+        public ActionResult ChangeUserInfo(string userId)
+        {
+            if (userId.IsNullOrWhiteSpace())
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            ApplicationUser user = db.Users.Find(userId);
+            var userInfoVM = new ChangeUserInfoViewModel();
+            if (user.FirstName != null)
+            {
+                userInfoVM.FirstName = user.FirstName;
+            }
+            if (user.LastName != null)
+            {
+                userInfoVM.LastName = user.LastName;
+            }
+            if (user.DisplayName != null)
+            {
+                userInfoVM.DisplayName = user.DisplayName;
+            }
+            if (user.DoB != null)
+            {
+                userInfoVM.DoB = user.DoB;
+            }
+
+            return View(userInfoVM);
+        }
+
+        //
+        // POST: /Manage/ChangeUserInfo
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [NoDirectAccess]
+        public ActionResult ChangeUserInfo(ChangeUserInfoViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+            var user = db.Users.Find(User.Identity.GetUserId());
+            user.DisplayName = model.DisplayName;
+            user.DoB = model.DoB;
+            user.FirstName = model.FirstName;
+            user.LastName = model.LastName;
+            db.Entry(user).State = EntityState.Modified;
+            db.SaveChanges();
+            return RedirectToAction("Index", new { Message = ManageMessageId.ChangeUserInfoSuccess });
+        }
+
+        //
+        // GET: /Manage/ChangeUserInfo
+        [NoDirectAccess]
+        [Authorize]
+        public ActionResult ChangeUserSettings()
+        {
+            return View();
+        }
+
+        //
+        // POST: /Manage/ChangeUserInfo
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [NoDirectAccess]
+        public ActionResult ChangeUserSettings(string DisplayColor, decimal? BalanceWarning)
+        {
+            var user = db.Users.Find(User.Identity.GetUserId());
+            if (BalanceWarning != null)
+            {
+                user.BalanceWarning = (decimal)BalanceWarning;
+            }
+            user.DisplaySetting = DisplayColor;
+            db.Entry(user).State = EntityState.Modified;
+            db.SaveChanges();
+            return RedirectToAction("Index", "Home");
+        }
+
+        [Authorize]
+        [NoDirectAccess]
+        public ActionResult LeaveHousehold()
+        {
+            LeaveHouseholdViewModel leaveVM = new LeaveHouseholdViewModel();
+            ApplicationUser user = db.Users.Find(User.Identity.GetUserId());
+            Household household = db.Households.Find(user.HouseholdId);
+            leaveVM.HouseholdId = household.Id;
+            return View(leaveVM);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [NoDirectAccess]
+        public ActionResult LeaveHousehold(LeaveHouseholdViewModel leaveVM)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(leaveVM);
+            }
+            ApplicationUser user = db.Users.Find(User.Identity.GetUserId());
+            user.HouseholdId = null;
+            db.Entry(user).State = EntityState.Modified;
+            db.SaveChanges();
+            return RedirectToAction("Index", new { Message = ManageMessageId.LeaveHousehold });
+        }
+
+        //
         // GET: /Manage/SetPassword
+        [NoDirectAccess]
         public ActionResult SetPassword()
         {
             return View();
@@ -255,6 +379,7 @@ namespace FinancialPlanner.Controllers
         // POST: /Manage/SetPassword
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [NoDirectAccess]
         public async Task<ActionResult> SetPassword(SetPasswordViewModel model)
         {
             if (ModelState.IsValid)
@@ -278,6 +403,7 @@ namespace FinancialPlanner.Controllers
 
         //
         // GET: /Manage/ManageLogins
+        [NoDirectAccess]
         public async Task<ActionResult> ManageLogins(ManageMessageId? message)
         {
             ViewBag.StatusMessage =
@@ -303,6 +429,7 @@ namespace FinancialPlanner.Controllers
         // POST: /Manage/LinkLogin
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [NoDirectAccess]
         public ActionResult LinkLogin(string provider)
         {
             // Request a redirect to the external login provider to link a login for the current user
@@ -311,6 +438,7 @@ namespace FinancialPlanner.Controllers
 
         //
         // GET: /Manage/LinkLoginCallback
+        [NoDirectAccess]
         public async Task<ActionResult> LinkLoginCallback()
         {
             var loginInfo = await AuthenticationManager.GetExternalLoginInfoAsync(XsrfKey, User.Identity.GetUserId());
@@ -381,6 +509,8 @@ namespace FinancialPlanner.Controllers
             SetPasswordSuccess,
             RemoveLoginSuccess,
             RemovePhoneSuccess,
+            ChangeUserInfoSuccess,
+            LeaveHousehold,
             Error
         }
 

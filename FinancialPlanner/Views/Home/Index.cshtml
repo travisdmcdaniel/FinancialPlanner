@@ -1,31 +1,1333 @@
-﻿@{
-    ViewBag.Title = "Home Page";
+﻿@model FinancialPlanner.Models.DashboardViewModel
+@using FinancialPlanner.Helpers;
+@using Microsoft.AspNet.Identity;
+@{
+    ViewBag.Title = "Household Dashboard";
 }
+<!-- Page Heading -->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            @if (Utilities.IsUserInAHousehold(User.Identity.GetUserId()))
+            {
+                <h1><span class="brand">@ViewBag.Title - </span><span class="brand-notransform">@Utilities.GetUsersHousehold(User.Identity.GetUserId()).Name</span></h1>
+            }
+            else
+            {
+                <h1><span class="brand">@ViewBag.Title</span></h1>
+            }
+        </div>
+    </div>
+    @if (@Utilities.IsUserInAHousehold(User.Identity.GetUserId()))
+    {
+        <div class="row">
+            <ul class="nav nav-tabs nav-justified">
+                <li class="active"><a data-toggle="tab" href="#householdDetails">My Household Details</a></li>
+                <li><a data-toggle="tab" href="#users">Members</a></li>
+                <li><a data-toggle="tab" href="#budgets">Budgets</a></li>
+                <li><a data-toggle="tab" href="#accounts">Accounts</a></li>
+            </ul>
+            <div class="tab-content">
+                <div id="householdDetails" class="tab-pane fade in active">
+                    <div class="row" style="padding-top:20px;">
+                        <div class="col-md-12">
+                            <div class="panel-heading"><span>Details For Household "@Utilities.GetUsersHousehold(User.Identity.GetUserId()).Name"</span></div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="panel @Utilities.GetUsersDisplaySettings(User.Identity.GetUserId())">
+                                        <div class="panel-heading">
+                                            <h4 style="float:left;">Household Members</h4>
+                                            <h4 style="float:right;"><i class="fa fa-users"></i></h4>
+                                            <div class="clearfix"></div>
+                                        </div>
+                                        <div class="panel-body">
+                                            @foreach (var user in Utilities.GetMembersOfUsersHousehold(User.Identity.GetUserId()))
+                                                    {
+                                                <span>@user.FullName</span>
+                                                        if (Utilities.IsUserInRole(user.Id, "Member Of Household"))
+                                                        {
+                                                    <span style="float:right;">Member Of Household</span>
+                                                    <div class="clearfix"></div>
+                                                        }
+                                                        if (Utilities.IsUserInRole(user.Id, "Head Of Household"))
+                                                        {
+                                                    <span style="float:right;">Head Of Household</span>
+                                                    <div class="clearfix"></div>
+                                                        }
+                                                    }
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="panel @Utilities.GetUsersDisplaySettings(User.Identity.GetUserId())">
+                                        <div class="panel-heading">
+                                            <h4 style="float:left;">Financial Details</h4>
+                                            <h4 style="float:right;"><i class="fa fa-usd"></i></h4>
+                                            <div class="clearfix"></div>
+                                        </div>
+                                        <div class="panel-body">
+                                            <span style="float:left;">Balance:</span>
+                                            <span style="float:right;">@String.Format("{0:C2}", @Utilities.GetHouseholdBalance(@Utilities.GetUsersHousehold(User.Identity.GetUserId()).Id))</span>
+                                            <div class="clearfix"></div>
+                                            <span style="float:left;">Number Of Accounts:</span>
+                                            <span style="float:right;">@Utilities.GetNumberOfHouseholdAccounts(@Utilities.GetUsersHousehold(User.Identity.GetUserId()).Id)</span>
+                                            <div class="clearfix"></div>
+                                            <span style="float:left;">Number Of Budgets:</span>
+                                            <span style="float:right;">@Utilities.GetNumberOfHouseholdBudgets(@Utilities.GetUsersHousehold(User.Identity.GetUserId()).Id)</span>
+                                            <div class="clearfix"></div>
+                                            <span style="float:left;">Number Of Budget Items:</span>
+                                            <span style="float:right;">@Utilities.GetNumberOfHouseholdBudgetItems(@Utilities.GetUsersHousehold(User.Identity.GetUserId()).Id)</span>
+                                            <div class="clearfix"></div>
+                                        </div>
 
-<div class="jumbotron">
-    <h1>ASP.NET</h1>
-    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-    <p><a href="http://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="panel @Utilities.GetUsersDisplaySettings(User.Identity.GetUserId())">
+                                        <div class="panel-heading">
+                                            <h4 style="float:left;">Household Access</h4>
+                                            <h4 style="float:right;"><i class="fa fa-unlock"></i></h4>
+                                            <div class="clearfix"></div>
+                                        </div>
+                                        <div class="panel-body">
+                                            <span style="float:left;">Key:</span>
+                                            <span style="float:right;">@Utilities.GetUsersHousehold(User.Identity.GetUserId()).Key</span>
+                                            <div class="clearfix"></div>
+                                            <span style="float:left;">Password:</span>
+                                            <span style="float:right;">@Utilities.GetUsersHousehold(User.Identity.GetUserId()).Password</span>
+                                            <div class="clearfix"></div>
+                                            <span style="float:left;">Invitations Sent:</span>
+                                            <span style="float:right;">@Utilities.GetNumberOfHouseholdInvitations(@Utilities.GetUsersHousehold(User.Identity.GetUserId()).Id)</span>
+                                            <div class="clearfix"></div>
+                                            <span style="float:left;">Invitations Accepted:</span>
+                                            <span style="float:right;">@Utilities.GetNumberOfHouseholdInvitationsAccepted(@Utilities.GetUsersHousehold(User.Identity.GetUserId()).Id)</span>
+                                            <div class="clearfix"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--End Of Panel Body-->
+                            <!--End Of Panel-->
+                        </div>
+                    </div>
+                </div>
+                <div id="users" class="tab-pane fade">
+                    <div class="row" style="padding-top:10px;">
+                        <div class="col-md-12">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <a data-toggle="collapse" href="#invitationCreate"><i class="fa fa-plus"></i> Invite A New Member</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="panel-group">
+                                <div id="invitationCreate" class="panel @Utilities.GetUsersDisplaySettings(User.Identity.GetUserId()) panel-collapse collapse">
+                                    <div class="panel-heading">
+                                        <button type="button" class="close" data-toggle="collapse" data-target="#invitationCreate" style="color:white;">&times;</button>
+                                        <h4 class="panel-title">
+                                            Invite A Household Member!
+                                        </h4>
+                                    </div>
+                                    <div>
+                                        @using (Html.BeginForm("Invite", "Households", FormMethod.Post))
+                                        {
+                                            <div class="panel-body">
 
-<div class="row">
-    <div class="col-md-4">
-        <h2>Getting started</h2>
-        <p>
-            ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-            enables a clean separation of concerns and gives you full control over markup
-            for enjoyable, agile development.
-        </p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Get more libraries</h2>
-        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Web Hosting</h2>
-        <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-    </div>
+                                                @Html.AntiForgeryToken()
+                                                <div class="row">
+                                                    <div class="col-sm-4">
+                                                        <p>Here you can invite a member of you household to use the <span class="brand">abacus financial planner</span>.  Simply enter the first and last name and e-mail address of the individual you wish to invite, and an invitation to join your household will be sent!</p>
+                                                    </div>
+                                                    <div class="col-sm-4">
+                                                        @Html.Label("First Name")
+                                                        <input class="form-control" placeholder="First Name" , type="text" style="max-width:100%;width:100%" required="required" name="FirstName" />
+                                                        @*@Html.EditorFor(m => m.InvitationToCreate.FirstName, new { htmlAttributes = new { @class = "form-control", placeholder = "First Name", style = "max-width:100%;width:100%;", required = "required" } })<br /><hr />*@
+                                                        @Html.Label("Last Name")
+                                                        <input class="form-control" placeholder="Last Name", type="text" style="max-width:100%;width:100%" required="required" name="LastName" />
+                                                        @*@Html.EditorFor(m => m.InvitationToCreate.LastName, new { htmlAttributes = new { @class = "form-control", placeholder = "Last Name", style = "max-width:100%;width:100%;", required = "required" } })*@
+                                                    </div>
+                                                    <div class="col-sm-4">
+                                                        @Html.Label("E-Mail")
+                                                        <input class="form-control" placeholder="E-Mail" type="email" style="max-width:100%;width:100%" required="required" name="InviteEmail" />
+                                                        @*@Html.EditorFor(m => m.InvitationToCreate., new { htmlAttributes = new { @class = "form-control", placeholder = "E-Mail", type = "email", style = "max-width:100%;width:100%;", required = "required" } })<br /><hr />*@
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="panel-footer">
+                                                <div class="row">
+                                                    <div class="col-sm-12">
+                                                        <input style="float:right;" type="submit" value="Send Invitation" class="btn btn-default" />
+                                                        <div class="clearfix"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        @foreach (var user in Model.Members)
+                        {
+                            <div class="col-md-3">
+                                <div class="panel @Utilities.GetUsersDisplaySettings(User.Identity.GetUserId())">
+                                    <div class="panel-heading text-center"><strong>@user.FullName</strong></div>
+                                    <div class="panel-body">
+                                        <span style="float:left;">Role:</span>
+                                        @if (Utilities.IsUserInRole(user.Id, "Member Of Household"))
+                                        {
+                                            <span style="float:right;">Member Of Household</span>
+                                            <div class="clearfix"></div>
+                                        }
+                                        @if (Utilities.IsUserInRole(user.Id, "Head Of Household"))
+                                        {
+                                            <span style="float:right;">Head Of Household</span>
+                                            <div class="clearfix"></div>
+                                        }
+                                        <div class="clearfix"></div>
+                                        <span style="float:left;"><i class="fa fa-envelope" data-toggle="tooltip" data-placement="bottom" title="E-Mail Address"></i>:</span>
+                                        <span style="float:right;">@user.Email</span>
+                                        <div class="clearfix"></div>
+                                        <span style="float:left;"><i class="fa fa-exchange" data-toggle="tooltip" data-placement="bottom" title="Transactions"></i>:</span>
+                                        <span style="float:right;">@Utilities.GetNumberOfUsersTransactions(user.Id)</span>
+                                        <div class="clearfix"></div>
+                                    </div>
+                                    <div class="panel-footer">
+                                        <span style="float:left;"><a href="#userDetailsModal_@user.Id" data-toggle="modal">Details</a></span>
+                                        @if (User.IsInRole("Head Of Household") && !Utilities.IsUserInRole(user.Id, "Head Of Household"))
+                                        {
+                                            <span style="float:right;"><a href="#removeUser_@user.Id" data-toggle="modal">Remove From Household</a></span>
+                                        }
+                                        <div class="clearfix"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal fade" id="userDetailsModal_@user.Id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="text-align:center;">
+                                <div class="modal-dialog" role="document" style="max-width:60% !important;width:auto !important;">
+                                    <div class="modal-content" style="text-align:justify;">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                            <h4 class="modal-title" id="myModalLabel">Household Member Details</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row">
+                                                <div class="col-sm-6">
+                                                    <p>
+                                                        These are all of the details for the selected user.  If you are the Head of your Household, you can remove any by clicking the "Remove From Household" in the user tab under that User's information.
+                                                    </p>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <span style="float:left;"><strong>User Name:</strong></span><span style="float:right;">@user.FullName</span><div class="clearfix"></div><br />
+                                                    <span style="float:left;"><strong>Registered E-Mail:</strong></span><span style="float:right;">@user.Email</span><div class="clearfix"></div><br />
+                                                    <span style="float:left;"><strong>Transactions Entered:</strong></span><span style="float:right;">@user.Transactions.Count()</span><div class="clearfix"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal fade" id="removeUser_@user.Id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="text-align:center;">
+                                <div class="modal-dialog" role="document" style="max-width:60% !important;width:auto !important;display:inline-block;">
+                                    <div class="modal-content" style="text-align:justify;">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                            <h4 class="modal-title" id="myModalLabel">Remove User From Household</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            <h4>@user.FullName</h4>
+                                            <p class="text-danger">
+                                                Are you sure that you want to remove this user from your Household?  If you remove this user, you may want to change your Household Password.
+                                                After doing so, if you want the user to be able to rejoin your household, you will either have to send them a new email invitation, or share
+                                                your new Household Password with them, along with the Household Key.
+                                            </p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            @using (Html.BeginForm("RemoveUserFromHousehold", "Home", new { userId = @user.Id }, FormMethod.Post))
+                                        {
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-success">Yes, I Want To Remove This User</button>
+
+                                                <button type="button" class="btn btn-danger" data-dismiss="modal">No, I Do Not Want To Remove This User</button>
+                                        }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div id="budgets" class="tab-pane fade">
+                    <div class="row" style="padding-top:10px;">
+                        <div class="col-md-12">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <a data-toggle="collapse" href="#budgetCreate"><i class="fa fa-plus"></i> Create A Budget</a>&emsp;&emsp;&emsp;
+                                    <a data-toggle="collapse" href="#budgetChartsView"><i class="fa fa-bar-chart"></i> View Budget Graphs</a>
+                                </div>
+                            </div>
+                            @*<nav class="navbar navbar-default">
+                            <ul class="nav navbar-nav">
+                                <li><a data-toggle="collapse" href="#budgetCreate"><i class="fa fa-plus"></i> Create A Budget</a></li>
+                                <li><a data-toggle="collapse" href="#budgetChartsView"><i class="fa fa-bar-chart"></i> View Budget Graphs</a></li>
+                            </ul>
+                        </nav>*@
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="panel-group">
+                                <div id="budgetCreate" class="panel @Utilities.GetUsersDisplaySettings(User.Identity.GetUserId()) panel-collapse collapse">
+                                    <div class="panel-heading">
+                                        <button type="button" class="close" data-toggle="collapse" data-target="#budgetCreate" style="color:white;">&times;</button>
+                                        <h4 class="panel-title">
+                                            Create and define your budget!
+                                        </h4>
+                                    </div>
+                                    <div>
+                                        @using (Html.BeginForm("Create", "Budgets", FormMethod.Post))
+                                        {
+                                            <div class="panel-body">
+
+                                                @Html.AntiForgeryToken()
+                                                <div class="row">
+                                                    <div class="col-sm-4">
+                                                        <p>Give your new budget a name and description, so everyone in your Household will know exactly what transactions to link to it!  You can also mark the checkbox so that this budget will be regenerated automatically every month!</p>
+                                                    </div>
+                                                    <div class="col-sm-4">
+                                                        @Html.Label("Budget Name")
+                                                        @Html.EditorFor(m => m.BudgetToCreate.Name, new { htmlAttributes = new { @class = "form-control", placeholder = "Budget Name", style = "max-width:100%;width:100%;" } })<br /><hr />
+                                                        @Html.Label("Budget Amount")
+                                                        <div class="input-group">
+                                                            <span class="input-group-addon">$</span>
+                                                            @Html.EditorFor(m => m.BudgetToCreate.AmountBudgeted, new { htmlAttributes = new { @class = "form-control", style = "max-width:100%;width:100%;", placeholder = "Budget Amount", type = "number", min = "0", step = "1" } })
+                                                            <span class="input-group-addon">.00</span>
+                                                        </div>
+
+                                                    </div>
+                                                    <div class="col-sm-4">
+                                                        @Html.Label("Budget Description")
+                                                        @Html.TextAreaFor(m => m.BudgetToCreate.Description, new { @class = "form-control", placeholder = "Description", rows = "4", style = "max-width:100%;width:100%;" })<br /><hr />
+                                                        @Html.Label("Repeat Every Month?")
+                                                        @Html.EditorFor(m => m.BudgetToCreate.Monthly)
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="panel-footer">
+                                                <div class="row">
+                                                    <div class="col-sm-12">
+                                                        <input style="float:right;" type="submit" value="Create" class="btn btn-default" />
+                                                        <div class="clearfix"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                <div id="budgetChartsView" class="panel @Utilities.GetUsersDisplaySettings(User.Identity.GetUserId()) panel-collapse collapse">
+                                    <div class="panel-heading">
+                                        <button type="button" class="close" data-toggle="collapse" data-target="#budgetChartsView" style="color:white;">&times;</button>
+                                        <h4 class="panel-title">
+                                            Your Budget Graphs
+                                        </h4>
+                                    </div>
+                                    <div>
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <div style="height:350px;min-width:100%;" id="budgetCharts"></div><div class="clearfix"></div>
+                                            </div><div class="clearfix"></div>
+                                        </div><div class="clearfix"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- End of Row -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            @if (!Utilities.DoesHouseholdHaveBudgets(Model.Household.Id))
+                            {
+                                <p>You do not have any current budgets set up for your Household. Click on "Create A Budget" in the above toolbar to create a budget!</p>
+                            }
+                            else
+                            {
+                                if (Utilities.DoesHouseholdHaveBudgetsForCurrentMonth(Model.Household.Id))
+                                {
+                                    <div class="container">
+                                        <div class="row">
+                                            @foreach (var item in Model.Budgets)
+                                            {
+                                                <div class="col-md-4">
+                                                    <div class="panel @Utilities.GetUsersDisplaySettings(User.Identity.GetUserId())">
+                                                        <div class="panel-heading"><span style="float:left;"><strong>@item.Name</strong></span><span style="float:right;">&bull;@Utilities.GetBudgetDate(item.Id)</span><div class="clearfix"></div></div>
+                                                        <div class="panel-body">
+                                                            @if (Model.BudgetItems.Where(bi => bi.BudgetId == item.Id).Count() == 0)
+                                                            {
+                                                                <span style="float:left;">Budgeted Amount</span>
+                                                                <span style="float:right;">@String.Format("{0:C2}", @item.AmountBudgeted)</span><div class="clearfix"></div>
+                                                                <span style="float:left;">Amount Spent</span>
+                                                                <span style="float:right;">@String.Format("{0:C2}", @item.AmountAgainst)</span><div class="clearfix"></div><br />
+                                                                <p>
+                                                                    You do not have any budget items linked to this budget!  Click <a href="#budgetItemModal_@item.Id" data-toggle="modal">here</a> to add a budget item.  You must do this before you can add any transactions to your accounts.
+                                                                </p>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span style="float:left;">Budgeted Amount</span>
+                                                                <span style="float:right;">@String.Format("{0:C2}", @item.AmountBudgeted)</span><div class="clearfix"></div>
+                                                                <span style="float:left;">Amount Spent</span>
+                                                                <span style="float:right;">@String.Format("{0:C2}", @item.AmountAgainst)</span><div class="clearfix"></div>
+                                                                foreach (var budgetItem in Model.BudgetItems.Where(bi => bi.BudgetId == item.Id))
+                                                                {
+                                                                    <span style="float:left;">@budgetItem.Name</span>
+                                                                    <span style="float:right;">@Model.Transactions.Where(t => t.BudgetItemId == budgetItem.Id).Count()</span>
+                                                                    <div class="clearfix"></div>
+                                                                }
+                                                            }
+                                                        </div>
+                                                        @if (User.IsInRole("Head Of Household"))
+                                                        {
+                                                            <div class="panel-footer">
+                                                                <span style="float:left" class="text-warning"><a href="#removeBudgetModal_@item.Id" data-toggle="modal">Remove This Budget</a></span>
+                                                                <span style="float:right"><a href="#budgetItemModal_@item.Id" data-toggle="modal">Add A Budget Item</a></span>
+                                                                <div class="clearfix"></div>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                                <div class="modal fade" id="budgetItemModal_@item.Id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="text-align:center;">
+                                                    <div class="modal-dialog" role="document" style="max-width:60% !important;width:auto !important;display:inline-block;">
+                                                        <div class="modal-content" style="text-align:justify;">
+                                                            <div class="modal-header">
+                                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                                                <h4 class="modal-title" id="myModalLabel">Create A New Budget Item For @item.Name</h4>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                @using (Html.BeginForm("Create", "BudgetItems", new { budgetId = @item.Id }, FormMethod.Post))
+                                                                {
+                                                                    @Html.AntiForgeryToken()
+                                                                    <div class="row">
+                                                                        <div class="col-sm-8">
+                                                                            <p>
+                                                                                A budget item is simply a way to categorize transactions that you add to your accounts.  The names for your budget
+                                                                                items should be simple but descriptive.  For example, if you have a budget called Automotive Expenses, then you
+                                                                                might want to add budget items called "Oil Change", "Gasoline" and "Car Payment".  If you have more than one car,
+                                                                                you may want to refer to each one by it's make and model, to avoid confusion.
+                                                                            </p>
+                                                                        </div>
+                                                                        <div class="col-sm-4">
+                                                                            @Html.Label("Budget Item Name")
+                                                                            @Html.EditorFor(m => m.BudgetItemToCreate.Name, new { htmlAttributes = new { @class = "form-control", placeholder = "Budget Item Name", style = "max-width:100%;width:100%;" } })<br /><hr />
+                                                                            @Html.ValidationMessageFor(m => m.BudgetItemToCreate)
+                                                                            <button type="submit" class="btn btn-success">Create</button>
+                                                                        </div>
+                                                                    </div>
+                                                                }
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal fade" id="removeBudgetModal_@item.Id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="text-align:center;">
+                                                    <div class="modal-dialog" role="document" style="max-width:60% !important;width:auto !important;display:inline-block;">
+                                                        <div class="modal-content" style="text-align:justify;">
+                                                            <div class="modal-header">
+                                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                                                <h4 class="modal-title" id="myModalLabel">Remove Budget @item.Name</h4>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <p class="text-danger">
+                                                                    Are you sure that you want to remove this budget?  This can not be undone, and once you have removed the budget, you will
+                                                                    be unable to link any transactions to it.  All of this budget's budget items will also be removed.  Any existing transactions
+                                                                    have been linked to the removed budget and budget items can still be viewed and reconciled.
+                                                                </p>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                @using (Html.BeginForm("Delete", "Budgets", new { id = @item.Id }, FormMethod.Post))
+                                                                {
+                                                                    @Html.AntiForgeryToken()
+                                                                    <button type="submit" class="btn btn-success">Yes, I Want To Remove This Budget</button>
+
+                                                                    <button type="button" class="btn btn-danger" data-dismiss="modal">No, I Do Not Want To Remove This Budget</button>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    if (Utilities.DoesHouseholdHaveRepeatableBudgets(Model.Household.Id))
+                                    {
+                                        using (Html.BeginForm("RepopulateBudgets", "Home", new { householdId = Model.Household.Id }, FormMethod.Post))
+                                        {
+                                            <p>It's a new month!  If you want to reuse the Budgets that you have designated as Monthly Budgets, click this button to repopulate them.</p>
+                                            <p><button type="submit">Repopulate Budgets</button></p>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <p>
+                                            It's a new month, but you haven't designated any of your previous Budgets to be Monthly Budgets, so you will need to create new 
+                                            Budgets for the current month.  Click on "Create A Budget" in the above toolbar to create your new Budgets.
+                                        </p>
+                                    }
+                                }
+
+                            }
+                        </div>
+                    </div>
+                    <!-- End of Row -->
+                </div>
+                <div id="accounts" class="tab-pane fade">
+                    <div class="row" style="padding-top:10px;">
+                        <div class="col-md-12">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <a data-toggle="collapse" href="#accountCreate"><i class="fa fa-plus"></i> Add An Account</a>&emsp;&emsp;&emsp;
+                                    @*<a data-toggle="collapse" href="#accountChartsView"><i class="fa fa-bar-chart"></i> View Accounts Graph</a>*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="panel-group">
+                                <div id="accountCreate" class="panel @Utilities.GetUsersDisplaySettings(User.Identity.GetUserId()) panel-collapse collapse">
+                                    <div class="panel-heading">
+                                        <button type="button" class="close" data-toggle="collapse" data-target="#accountCreate" style="color:white;">&times;</button>
+                                        <h4 class="panel-title">
+                                            Create and define your account!
+                                        </h4>
+                                    </div>
+                                    <div>
+                                        @using (Html.BeginForm("Create", "Accounts", FormMethod.Post))
+                                        {
+                                            <div class="panel-body">
+
+                                                @Html.AntiForgeryToken()
+                                                <div class="row">
+                                                    <div class="col-sm-4">
+                                                        <p>
+                                                            Give your new account a name and description, so everyone in your Household will know exactly what transactions to link to it!
+                                                            If the account has an overdraft fee, you can also include that here.  If there is no overdraft fee, simply leave it set to zero.
+                                                            If you enter a transaction for this account that brings the balance below zero dollars, you will be asked to choose whether or
+                                                            not the transaction should invoke the overdraft fee (if one exists).  Overdraft Fees are processed like any other transaction
+                                                            and can be edited or voided at a later date if they are refunded by your financial institution.
+                                                        </p>
+                                                        <p>
+                                                            When you create an account, you are its owner.  If you want other members of your household to be able to add transactions
+                                                            and deposits to the account, you must mark it as being a "Shared" account, otherwise you will be the only user that can do
+                                                            those things!
+                                                        </p>
+                                                    </div>
+                                                    <div class="col-sm-4">
+                                                        @Html.Label("Account Name")
+                                                        @Html.EditorFor(m => m.AccountToCreate.Name, new { htmlAttributes = new { @class = "form-control", placeholder = "Account Name", style = "max-width:100%;width:100%;" } })<br /><hr />
+                                                        @Html.Label("Current Account Balance")
+                                                        <div class="input-group">
+                                                            <span class="input-group-addon">$</span>
+                                                            @Html.EditorFor(m => m.AccountToCreate.Balance, new { htmlAttributes = new { @class = "form-control", style = "max-width:100%;width:100%;", placeholder = "Account Balance", type = "number", step = ".01" } })
+                                                        </div>
+                                                        <hr />
+                                                        @Html.Label("Shared Account?")
+                                                        @Html.EditorFor(m => m.AccountToCreate.Shared)
+                                                    </div>
+                                                    <div class="col-sm-4">
+                                                        @Html.Label("Account Description")
+                                                        @Html.TextAreaFor(m => m.AccountToCreate.Description, new { @class = "form-control", placeholder = "Description", rows = "4", style = "max-width:100%;width:100%;" })<br /><hr />
+                                                        @Html.Label("Overdraft Fee?")
+                                                        <div class="input-group">
+                                                            <span class="input-group-addon">$</span>
+                                                            @Html.EditorFor(m => m.AccountToCreate.OverDraftFee, new { htmlAttributes = new { @class = "form-control", style = "max-width:100%;width:100%;", placeholder = "Overdraft Fee", value = "0", type = "number", min = "0", step = ".01" } })
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="panel-footer">
+                                                <div class="row">
+                                                    <div class="col-sm-12">
+                                                        <input style="float:right;" type="submit" value="Create" class="btn btn-default" />
+                                                        <div class="clearfix"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                @*<div id="accountChartsView" class="panel @Utilities.GetUsersDisplaySettings(User.Identity.GetUserId()) panel-collapse collapse">
+                                <div class="panel-heading">
+                                    <button type="button" class="close" data-toggle="collapse" data-target="#budgetChartsView" style="color:white;">&times;</button>
+                                    <h4 class="panel-title">
+                                        Your Accounts Graph
+                                    </h4>
+                                </div>
+                                <div>
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <div style="height:350px;min-width:100%;" id="accountCharts"></div><div class="clearfix"></div>
+                                        </div><div class="clearfix"></div>
+                                    </div><div class="clearfix"></div>
+                                </div>
+                            </div>*@
+                            </div>
+                        </div>
+                    </div>
+                    <!-- End of Row -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            @if (Model.Accounts.Where(a => a.Deleted == false).Count() == 0)
+                            {
+                                <p>You do not have any current accounts set up for your Household.  Click on "Add An Account" in the above toolbar to set up a new account.</p>
+
+
+                            }
+                            else
+                            {
+                                <p>All of your Household's accounts are listed below.  Click on an account to see more information about it!</p>
+                                <div class="panel group">
+                                    @foreach (var item in Model.Accounts)
+                                    {
+                                        if (!item.Deleted && (item.OwnerId == User.Identity.GetUserId() || item.Shared))
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="panel @Utilities.GetUsersDisplaySettings(User.Identity.GetUserId())">
+                                                        <div class="panel-heading" style="padding-top:0;padding-bottom:0;cursor:pointer;" data-toggle="collapse" data-target="#account_@item.Id">
+                                                            <span class="panel-heading" style="float:left;"><strong>@item.Name</strong></span>
+                                                            <span class="panel-heading" style="float:right;"><strong>@String.Format("{0:C2}", @item.Balance)</strong></span>
+                                                            <div class="clearfix"></div>
+                                                        </div>
+                                                        <div id="account_@item.Id" class="panel-collapse collapse">
+                                                            <div class="panel-body">
+                                                                <div class="row">
+                                                                    <div class="col-sm-4">
+                                                                        <span style="float:left;">Account Added:</span>
+                                                                        <span style="float:right;">@item.Created.Date.ToShortDateString()</span>
+                                                                        <div class="clearfix"></div>
+                                                                        <span style="float:left;">Current Balance:</span>
+                                                                        <span style="float:right;">@String.Format("{0:C2}", @item.Balance)</span>
+                                                                        <div class="clearfix"></div>
+                                                                        @if (@item.Transactions != null)
+                                                                        {
+                                                                            <span style="float:left;">Transaction Count:</span>
+                                                                            <span style="float:right;">@item.Transactions.Count()</span>
+                                                                            <div class="clearfix"></div>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <span style="float:left;">Transaction Count:</span>
+                                                                            <span style="float:right;">0</span>
+                                                                            <div class="clearfix"></div>
+                                                                        }
+                                                                        @if (@item.Deposits != null)
+                                                                        {
+                                                                            <span style="float:left;">Deposit Count:</span>
+                                                                            <span style="float:right;">@item.Deposits.Count()</span>
+                                                                            <div class="clearfix"></div>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <span style="float:left;">Deposit Count:</span>
+                                                                            <span style="float:right;">0</span>
+                                                                            <div class="clearfix"></div>
+                                                                        }
+                                                                        @if (@item.Updated.HasValue)
+                                                                        {
+                                                                            <span style="float:left;">Most Recent Activity:</span>
+                                                                            <span style="float:right;">@item.Updated.Value.Date.ToShortDateString()</span>
+                                                                            <div class="clearfix"></div>
+                                                                        }
+                                                                    </div>
+                                                                    <div class="col-sm-8">
+                                                                        <ul class="nav nav-tabs">
+                                                                            <li class="active"><a data-toggle="tab" href="#expenditures_@item.Id">Expenditures</a></li>
+                                                                            <li><a data-toggle="tab" href="#deposits_@item.Id">Deposits</a></li>
+                                                                        </ul>
+                                                                        <div class="tab-content">
+                                                                            <div id="expenditures_@item.Id" class="tab-pane fade in active">
+                                                                                @if (Utilities.GetRecentTransactions(item.Id) != null)
+                                                                                {
+                                                                                    foreach (var transaction in Utilities.GetRecentTransactions(@item.Id))
+                                                                                    {
+                                                                                        <div class="row transaction-link" style="height:2em;">
+                                                                                            <div class="col-sm-12" style="height:100%;padding-top:5px;">
+                                                                                                <a href="#transactionDetailsModal_@transaction.Id" data-toggle="modal" class="transaction-link">
+                                                                                                    <div style="vertical-align:middle;">
+                                                                                                        <span style="float:left;"><strong>Budget Item:</strong> @transaction.BudgetItem.Name</span>
+                                                                                                        <span style="float:right;">Amount: <strong>@String.Format("{0:C2}", @Utilities.getTrueTransactionAmount(transaction.Id))</strong></span>
+                                                                                                    </div>
+                                                                                                </a>
+                                                                                            </div>
+                                                                                        </div>
+
+                                                                                        <div style="clear:both;"></div>
+                                                                                        if (transaction != Utilities.GetRecentTransactions(@item.Id).Last())
+                                                                                        {
+                                                                                            <hr style="margin-top:1px;margin-bottom:1px;" />
+                                                                                        }
+                                                                                        <div class="modal fade" id="transactionDetailsModal_@transaction.Id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="text-align:center;">
+                                                                                            <div class="modal-dialog" role="document" style="max-width:60% !important;width:auto !important;">
+                                                                                                <div class="modal-content" style="text-align:justify;">
+                                                                                                    <div class="modal-header">
+                                                                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                                                                                        <h4 class="modal-title" id="myModalLabel">Reconcile This Transaction</h4>
+                                                                                                    </div>
+                                                                                                    <div class="modal-body">
+                                                                                                        <div class="row">
+                                                                                                            <div class="col-sm-4">
+                                                                                                                <p>
+                                                                                                                    These are all of the details for the selected transaction.  If you need to reconcile this transaction, simply click on the reconcile button.
+                                                                                                                </p>
+                                                                                                                <button type="button" data-target="#reconcileTransaction_@transaction.Id" data-toggle="collapse">Reconcile</button>
+                                                                                                            </div>
+                                                                                                            <div class="col-sm-4">
+                                                                                                                <span style="float:left;"><strong>Budget:</strong></span><span style="float:right;">@transaction.BudgetItem.Budget.Name</span><div class="clearfix"></div><br />
+                                                                                                                <span style="float:left;"><strong>Budget Item:</strong></span><span style="float:right;">@transaction.BudgetItem.Name</span><div class="clearfix"></div>
+                                                                                                            </div>
+                                                                                                            <div class="col-sm-4">
+                                                                                                                <span style="float:left;"><strong>Entered On:</strong></span><span style="float:right;">@transaction.Date.ToShortDateString() <strong>at</strong> @transaction.Date.ToShortTimeString()</span><div class="clearfix"></div><br />
+                                                                                                                <span style="float:left;"><strong>Entered By:</strong></span><span style="float:right;">@transaction.EnteredBy.FullName</span><div class="clearfix"></div><br />
+                                                                                                                <span style="float:left;"><strong>Transaction Amount:</strong></span><span style="float:right;">@String.Format("{0:C2}", @Utilities.getTrueTransactionAmount(transaction.Id))</span><div class="clearfix"></div>
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                        <br />
+                                                                                                        <div class="row">
+                                                                                                            <div class="col-sm-12">
+                                                                                                                <div class="panel-group">
+                                                                                                                    <div id="reconcileTransaction_@transaction.Id" class="panel panel-default panel-collapse collapse">
+                                                                                                                        <div class="panel-heading">
+                                                                                                                            <button type="button" class="close" data-toggle="collapse" data-target="#reconcileTransaction_@transaction.Id">&times;</button>
+                                                                                                                            <h4 class="panel-title">
+                                                                                                                                Reconcile This Transaction
+                                                                                                                            </h4>
+                                                                                                                        </div>
+                                                                                                                        <div>
+                                                                                                                            @using (Html.BeginForm("Reconcile", "Transactions", new { accountId = item.Id, transactionId = transaction.Id, amount = transaction.Amount }, FormMethod.Post))
+                                                                                                                            {
+                                                                                                                                <div class="panel-body">
+
+                                                                                                                                    @Html.AntiForgeryToken()
+                                                                                                                                    <div class="row">
+                                                                                                                                        <div class="col-sm-4">
+                                                                                                                                            @if (transaction.ReconciledAmount > 0)
+                                                                                                                                            {
+                                                                                                                                                @Html.Label("Original Amount")
+                                                                                                                                                <div class="input-group">
+                                                                                                                                                    <span class="input-group-addon">$</span>
+                                                                                                                                                    <input class="form-control" placeholder=@transaction.Amount style="max-width:100%;width:100%;cursor:default;" value=@transaction.Amount type="number" disabled="disabled" />
+                                                                                                                                                    @*@Html.EditorFor(Model => Model.TransactionToCreate.Amount, new { htmlAttributes = new { @class = "form-control", style = "max-width:100%;width:100%;cursor:default;", placeholder = @transaction.Amount, value = @transaction.Amount, type = "number", disabled = "disabled" } })*@
+                                                                                                                                                </div>
+                                                                                                                                            }
+                                                                                                                                        </div>
+                                                                                                                                        <div class="col-sm-4">
+                                                                                                                                            @if (transaction.ReconciledAmount > 0)
+                                                                                                                                            {
+                                                                                                                                                @Html.Label("Previously Reconciled Amount")
+                                                                                                                                                <div class="input-group">
+                                                                                                                                                    <span class="input-group-addon">$</span>
+                                                                                                                                                    <input class="form-control" style="max-width:100%;width:100%;cursor:default;" placeholder=@transaction.ReconciledAmount value=@transaction.ReconciledAmount type="number" disabled="disabled" />
+                                                                                                                                                    @*@Html.EditorFor(Model => Model.TransactionToCreate.Amount, new { htmlAttributes = new { @class = "form-control", style = "max-width:100%;width:100%;cursor:default;", placeholder = @transaction.ReconciledAmount, value = @transaction.ReconciledAmount, type = "number", disabled = "disabled" } })*@
+                                                                                                                                                </div>
+                                                                                                                                            }
+                                                                                                                                            else
+                                                                                                                                            {
+                                                                                                                                                @Html.Label("Original Amount")
+                                                                                                                                                <div class="input-group">
+                                                                                                                                                    <span class="input-group-addon">$</span>
+                                                                                                                                                    <input class="form-control" style="max-width:100%;width:100%;cursor:default;" placeholder=@transaction.Amount value=@transaction.Amount type="number" disabled="disabled" />
+                                                                                                                                                    @*@Html.EditorFor(Model => Model.TransactionToCreate.Amount, new { htmlAttributes = new { @class = "form-control", style = "max-width:100%;width:100%;cursor:default;", placeholder = @transaction.Amount, value = @transaction.Amount, type = "number", disabled = "disabled" } })*@
+                                                                                                                                                </div>
+                                                                                                                                            }
+                                                                                                                                        </div>
+                                                                                                                                        <div class="col-sm-4">
+                                                                                                                                            @Html.Label("Reconciled Amount")
+                                                                                                                                            <div class="input-group">
+                                                                                                                                                <span class="input-group-addon">$</span>
+                                                                                                                                                <input class="form-control" type="number" name="reconciled" placeholder="Reconciled Balace" style="max-width:100%;width:100%;" step=".01" min="0" />
+                                                                                                                                            </div>
+                                                                                                                                        </div>
+                                                                                                                                    </div>
+                                                                                                                                </div>
+                                                                                                                                <div class="panel-footer">
+                                                                                                                                    <div class="row">
+                                                                                                                                        <div class="col-sm-12">
+                                                                                                                                            <input style="float:right;" type="submit" value="Submit Reconciliation" class="btn btn-default" />
+                                                                                                                                            <div class="clearfix"></div>
+                                                                                                                                        </div>
+                                                                                                                                    </div>
+                                                                                                                                </div>
+                                                                                                                            }
+                                                                                                                        </div>
+                                                                                                                    </div>
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                    <div class="modal-footer">
+                                                                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    }
+                                                                                }
+                                                                            </div>
+                                                                            <div id="deposits_@item.Id" class="tab-pane fade">
+                                                                                @if (Utilities.GetRecentDeposits(item.Id) != null)
+                                                                                {
+                                                                                    foreach (var deposit in Utilities.GetRecentDeposits(@item.Id))
+                                                                                    {
+                                                                                        <div class="row transaction-link" style="height:2em;">
+                                                                                            <div class="col-sm-12" style="height:100%;padding-top:5px;">
+                                                                                                <a href="#depositDetailsModal_@deposit.Id" data-toggle="modal" class="transaction-link">
+                                                                                                    <div style="vertical-align:middle;">
+                                                                                                        <span style="float:left;"><strong>Source:</strong> @deposit.Source</span>
+                                                                                                        <span style="float:right;">Amount: <strong>@String.Format("{0:C2}", @Utilities.getTrueDepositAmount(deposit.Id))</strong></span>
+                                                                                                    </div>
+                                                                                                </a>
+                                                                                            </div>
+                                                                                        </div>
+
+                                                                                        <div style="clear:both;"></div>
+                                                                                        if (deposit != Utilities.GetRecentDeposits(@item.Id).Last())
+                                                                                        {
+                                                                                            <hr style="margin-top:1px;margin-bottom:1px;" />
+                                                                                        }
+                                                                                        <div class="modal fade" id="depositDetailsModal_@deposit.Id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="text-align:center;">
+                                                                                            <div class="modal-dialog" role="document" style="max-width:60% !important;width:auto !important;">
+                                                                                                <div class="modal-content" style="text-align:justify;">
+                                                                                                    <div class="modal-header">
+                                                                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                                                                                        <h4 class="modal-title" id="myModalLabel">Deposit Details</h4>
+                                                                                                    </div>
+                                                                                                    <div class="modal-body">
+                                                                                                        <div class="row">
+                                                                                                            <div class="col-sm-4">
+                                                                                                                <p>
+                                                                                                                    These are all of the details for the selected transaction.  If you need to reconcile this transaction, simply click on the reconcile button.
+                                                                                                                </p>
+                                                                                                                <button type="button" data-target="#reconcileTransaction_@deposit.Id" data-toggle="collapse">Reconcile</button>
+                                                                                                            </div>
+                                                                                                            <div class="col-sm-4">
+                                                                                                                <span style="float:left;"><strong>Source:</strong></span><span style="float:right;">@deposit.Source</span><div class="clearfix"></div>
+                                                                                                            </div>
+                                                                                                            <div class="col-sm-4">
+                                                                                                                <span style="float:left;"><strong>Entered On:</strong></span><span style="float:right;">@deposit.Date.ToShortDateString() <strong>at</strong> @deposit.Date.ToShortTimeString()</span><div class="clearfix"></div><br />
+                                                                                                                <span style="float:left;"><strong>Entered By:</strong></span><span style="float:right;">@deposit.EnteredBy.FullName</span><div class="clearfix"></div><br />
+                                                                                                                <span style="float:left;"><strong>Transaction Amount:</strong></span><span style="float:right;">@String.Format("{0:C2}", @Utilities.getTrueDepositAmount(deposit.Id))</span><div class="clearfix"></div>
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                        <br />
+                                                                                                        <div class="row">
+                                                                                                            <div class="col-sm-12">
+                                                                                                                <div class="panel-group">
+                                                                                                                    <div id="reconcileTransaction_@deposit.Id" class="panel panel-default panel-collapse collapse">
+                                                                                                                        <div class="panel-heading">
+                                                                                                                            <button type="button" class="close" data-toggle="collapse" data-target="#reconcileTransaction_@deposit.Id">&times;</button>
+                                                                                                                            <h4 class="panel-title">
+                                                                                                                                Reconcile This Transaction
+                                                                                                                            </h4>
+                                                                                                                        </div>
+                                                                                                                        <div>
+                                                                                                                            @using (Html.BeginForm("Reconcile", "Deposits", new { accountId = item.Id, depositId = deposit.Id, amount = deposit.Amount }, FormMethod.Post))
+                                                                                                                            {
+                                                                                                                                <div class="panel-body">
+
+                                                                                                                                    @Html.AntiForgeryToken()
+                                                                                                                                    <div class="row">
+                                                                                                                                        <div class="col-sm-4">
+                                                                                                                                            @if (deposit.ReconciledAmount > 0)
+                                                                                                                                            {
+                                                                                                                                                @Html.Label("Original Amount")
+                                                                                                                                                <div class="input-group">
+                                                                                                                                                    <span class="input-group-addon">$</span>
+                                                                                                                                                    @Html.EditorFor(model => model.DepositToCreate.Amount, new { htmlAttributes = new { @class = "form-control", style = "max-width:100%;width:100%;cursor:default;", placeholder = @deposit.Amount, value = @deposit.Amount, type = "number", disabled = "disabled" } })
+                                                                                                                                                </div>
+                                                                                                                                            }
+                                                                                                                                        </div>
+                                                                                                                                        <div class="col-sm-4">
+                                                                                                                                            @if (deposit.ReconciledAmount > 0)
+                                                                                                                                            {
+                                                                                                                                                @Html.Label("Previously Reconciled Amount")
+                                                                                                                                                <div class="input-group">
+                                                                                                                                                    <span class="input-group-addon">$</span>
+                                                                                                                                                    @Html.EditorFor(model => model.DepositToCreate.Amount, new { htmlAttributes = new { @class = "form-control", style = "max-width:100%;width:100%;cursor:default;", placeholder = @deposit.ReconciledAmount, value = @deposit.ReconciledAmount, type = "number", disabled = "disabled" } })
+                                                                                                                                                </div>
+                                                                                                                                            }
+                                                                                                                                            else
+                                                                                                                                            {
+                                                                                                                                                @Html.Label("Original Amount")
+                                                                                                                                                <div class="input-group">
+                                                                                                                                                    <span class="input-group-addon">$</span>
+                                                                                                                                                    @Html.EditorFor(model => model.DepositToCreate.Amount, new { htmlAttributes = new { @class = "form-control", style = "max-width:100%;width:100%;cursor:default;", placeholder = @deposit.Amount, value = @deposit.Amount, type = "number", disabled = "disabled" } })
+                                                                                                                                                </div>
+                                                                                                                                            }
+                                                                                                                                        </div>
+                                                                                                                                        <div class="col-sm-4">
+                                                                                                                                            @Html.Label("Reconciled Amount")
+                                                                                                                                            <div class="input-group">
+                                                                                                                                                <span class="input-group-addon">$</span>
+                                                                                                                                                <input class="form-control" type="number" name="reconciled" placeholder="Reconciled Balace" style="max-width:100%;width:100%;" step=".01" min="0" />
+                                                                                                                                            </div>
+                                                                                                                                        </div>
+                                                                                                                                    </div>
+                                                                                                                                </div>
+                                                                                                                                <div class="panel-footer">
+                                                                                                                                    <div class="row">
+                                                                                                                                        <div class="col-sm-12">
+                                                                                                                                            <input style="float:right;" type="submit" value="Submit Reconciliation" class="btn btn-default" />
+                                                                                                                                            <div class="clearfix"></div>
+                                                                                                                                        </div>
+                                                                                                                                    </div>
+                                                                                                                                </div>
+                                                                                                                            }
+                                                                                                                        </div>
+                                                                                                                    </div>
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                    <div class="modal-footer">
+                                                                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    }
+                                                                                }
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="panel-footer">
+                                                                @if (User.IsInRole("Head Of Household"))
+                                                                {
+                                                                    <span style="float:left;">
+                                                                        <a href="#removeAccount_@item.Id" data-toggle="modal">Remove This Account</a> |
+                                                                        <a href="#editAccount_@item.Id" data-toggle="modal">Edit This Account</a> |
+                                                                        <a href="#addTransaction_@item.Id" data-toggle="modal">Add A Transaction</a> |
+                                                                        <a href="#addDeposit_@item.Id" data-toggle="modal">Add A Deposit</a> |
+                                                                        <a href="@Url.Action("AllAccountTransactions", "Home", new { accountId = item.Id })">View All Transactions For This Account</a> |
+                                                                        <a href="@Url.Action("GenerateTransactions", "Transactions", new { accountId = item.Id })">Generate Transactions</a>
+                                                                    </span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span style="float:left;">
+                                                                        <a href="#editAccount_@item.Id" data-toggle="modal">Edit This Account</a> |
+                                                                        <a href="#addTransaction_@item.Id" data-toggle="modal">Add A Transaction</a> |
+                                                                        <a href="#addDeposit_@item.Id" data-toggle="modal">Add A Deposit</a> |
+                                                                        <a href="@Url.Action("AllAccountTransactions", "Home", new { accountId = item.Id })">View All Transactions For This Account</a>
+                                                                    </span>
+                                                                }
+                                                                <span style="float:right;"><a data-toggle="collapse" data-target="#account_@item.Id" style="cursor:pointer;">Close</a></span>
+                                                                <div class="clearfix"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal fade" id="addTransaction_@item.Id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="text-align:center;">
+                                                <div class="modal-dialog" role="document" style="max-width:60% !important;width:auto !important;">
+                                                    <div class="modal-content" style="text-align:justify;">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                                            <h4 class="modal-title" id="myModalLabel">Add A Transaction To Account @item.Name</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            @if (Model.BudgetItems.Count() == 0)
+                                                            {
+                                                            <p>
+                                                                You must define a few budget items through which you will link your transactions to your budgets!
+                                                                After you have done that, you can add transactions in this window.
+                                                            </p>
+                                                            }
+                                                            else
+                                                            {
+                                                                using (Html.BeginForm("Create", "Transactions", new { id = item.Id }, FormMethod.Post))
+                                                                {
+                                                            <div class="row">
+                                                                @Html.AntiForgeryToken()
+                                                                <div class="col-sm-4">
+                                                                    <p>
+                                                                        You must select a budget item to which you will link your transaction.  This allows <span class="brand">abacus</span> to know against which budget to set the transaction.
+                                                                    </p><hr />
+                                                                    @{
+                                                                                ViewBag.ddList = new SelectList(Model.BudgetItems, "Id", "Name");
+                                                                    }
+                                                                    @Html.Label("Budget Item")
+                                                                    @Html.DropDownList("ddList", null, new { @class = "form-control" })
+                                                                </div>
+                                                                <div class="col-sm-4">
+                                                                    <p>
+                                                                        Enter the amount of the transaction, exactly as it is shown on your reciept (or bank statement).  If you make a mistake you can always fix it later!
+                                                                    </p><hr />
+                                                                    @Html.Label("Transaction Amount")
+                                                                    <div class="input-group">
+                                                                        <span class="input-group-addon">$</span>
+                                                                        @Html.EditorFor(model => model.TransactionToCreate.Amount, new { htmlAttributes = new { @class = "form-control", style = "max-width:100%;width:100%;", placeholder = "Amount", min = "0", type = "number", step = ".01" } })
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-sm-4">
+                                                                    <p>
+                                                                        When you are ready to add the transaction, simply click the button below and it will be added immediately!
+                                                                    </p><hr />
+                                                                    <div class="text-center">
+                                                                        <button type="submit" class="btn btn-success">Add Transaction</button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row">
+                                                                <div class="col-sm-12">
+                                                                    <div class="panel-group">
+                                                                        <div id="transactionWarning" class="panel panel-warning panel-collapse collapse">
+                                                                            <div class="panel-heading">
+                                                                                <button type="button" class="close" data-toggle="collapse" data-target="#transactionWarning">&times;</button>
+                                                                                <h4 class="panel-title">
+                                                                                    Overdraft Warning!
+                                                                                </h4>
+                                                                            </div>
+                                                                            <div>
+                                                                                <div class="panel-body">
+
+                                                                                </div>
+                                                                                <div class="panel-footer">
+                                                                                    <div class="row">
+                                                                                        <div class="col-sm-12">
+                                                                                            <input style="float:right;" type="submit" value="Submit Reconciliation" class="btn btn-default" />
+                                                                                            <div class="clearfix"></div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                                                    }
+                                                                                }
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal fade" id="addDeposit_@item.Id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="text-align:center;">
+                                                <div class="modal-dialog" role="document" style="max-width:60% !important;width:auto !important;">
+                                                    <div class="modal-content" style="text-align:justify;">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                                            <h4 class="modal-title" id="myModalLabel">Add A Deposit To Account @item.Name</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            @using (Html.BeginForm("Create", "Deposits", new { id = item.Id }, FormMethod.Post))
+                                                                {
+                                                            <div class="row">
+                                                                @Html.AntiForgeryToken()
+                                                                <div class="col-sm-4">
+                                                                    <p>
+                                                                        What is the source of the deposit?  If you do not specify a source, it will be set to "Unspecified".
+                                                                    </p><hr />
+                                                                    @Html.Label("Deposit Source")
+                                                                    @*<input type="text" placeholder="Source" class="form-control" name="source" style="max-width:100%;width:100%;"/>*@
+                                                                    @Html.EditorFor(model => model.DepositToCreate.Source, new { htmlAttributes = new { @class = "form-control", style = "max-width:100%;width:100%;", placeholder = "Source", min = "0", type = "text" } })
+                                                                </div>
+                                                                <div class="col-sm-4">
+                                                                    <p>
+                                                                        Enter the amount of the deposit, exactly as it is shown on your reciept (or bank statement).  If you make a mistake you can always fix it later!
+                                                                    </p><hr />
+                                                                    @Html.Label("Deposit Amount")
+                                                                    <div class="input-group">
+                                                                        <span class="input-group-addon">$</span>
+                                                                        @Html.EditorFor(model => model.DepositToCreate.Amount, new { htmlAttributes = new { @class = "form-control", style = "max-width:100%;width:100%;", placeholder = "Amount", min = "0", type = "number", step = ".01" } })
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-sm-4">
+                                                                    <p>
+                                                                        When you are ready to add the deposit, simply click the button below and it will be added immediately!
+                                                                    </p><hr />
+                                                                    <div class="text-center">
+                                                                        <button type="submit" class="btn btn-success">Add Deposit</button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                                }
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal fade" id="removeAccount_@item.Id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="text-align:center;">
+                                                <div class="modal-dialog" role="document" style="max-width:60% !important;width:auto !important;display:inline-block;">
+                                                    <div class="modal-content" style="text-align:justify;">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                                            <h4 class="modal-title" id="myModalLabel">Remove Account @item.Name</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p class="text-danger">
+                                                                Are you sure that you want to remove this account?  This can not be undone, and once removed you will be unable to add
+                                                                transactions for the account.  You will still be able to view transactions made on the account that have already been
+                                                                added, but no changes can be made!
+                                                            </p>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            @using (Html.BeginForm("Delete", "Accounts", new { id = @item.Id }, FormMethod.Post))
+                                                            {
+                                                            @Html.AntiForgeryToken()
+                                                            <button type="submit" class="btn btn-success">Yes, I Want To Remove This Account</button>
+
+                                                            <button type="button" class="btn btn-danger" data-dismiss="modal">No, I Do Not Want To Remove This Account</button>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal fade" id="editAccount_@item.Id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="text-align:center;">
+                                                <div class="modal-dialog" role="document" style="max-width:60% !important;width:auto !important;">
+                                                    <div class="modal-content" style="text-align:justify;">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                                            <h4 class="modal-title" id="myModalLabel">Edit Account @item.Name</h4>
+                                                        </div>
+                                                        @using (Html.BeginForm("Edit", "Accounts", new { accountId = item.Id }, FormMethod.Post))
+                                                        {
+                                                            <div class="modal-body">
+                                                                    @Html.AntiForgeryToken()
+                                                                    <div class="row">
+                                                                        <div class="col-sm-4">
+                                                                            <p>
+                                                                                Make any changes to your account that need to be made, and then click on the "Save Changes" button.
+                                                                            </p>
+                                                                        </div>
+                                                                        <div class="col-sm-4">
+                                                                            @Html.Label("Account Name")
+                                                                            <input type="text" class="form-control" style="max-width:100%;width:100%;cursor:default" disabled="disabled" placeholder="@item.Name" value="@item.Name" /><br />
+                                                                            <input type="text" class="form-control" style="max-width:100%;width:100%;" placeholder="@item.Name" value="@item.Name" name="NewName" />
+                                                                        </div>
+                                                                        <div class="col-sm-4">
+                                                                            @Html.Label("Overdraft Fee")
+                                                                            <div class="input-group">
+                                                                                <span class="input-group-addon">$</span>
+                                                                                <input class="form-control" style="max-width:100%;width:100%;cursor:default" disabled="disabled" placeholder="@item.OverDraftFee" value="@item.OverDraftFee" />
+                                                                            </div><br />
+                                                                            <div class="input-group">
+                                                                                <span class="input-group-addon">$</span>
+                                                                                <input class="form-control" style="max-width:100%;width:100%" name="NewOverDraftFee" placeholder="@item.OverDraftFee" value="@item.OverDraftFee" , min="0" , step=".01" />
+                                                                            </div>
+                                                                            <br /><hr />
+                                                                            @Html.Label("Shared Account?")
+                                                                            
+                                                                            @if (item.Shared)
+                                                                            {
+                                                                                @Html.CheckBox("NewShared", true)
+                                                                                @*<input type="checkbox" name="NewShared" checked="checked" />*@
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                @Html.CheckBox("NewShared")
+                                                                                @*<input type="checkbox" name="NewShared" />*@
+                                                                            }
+                                                                        </div>
+                                                                    </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <input type="submit" value="Save Changes" class="btn btn-success" />
+                                                                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                                                            }
+
+                                                                        }
+                                </div>
+                                                                        }
+                        </div>
+                    </div>
+                    <!-- End of Row -->
+
+
+                </div>
+
+
+            </div>
+        </div>
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    <hr />
+                                                                                    <div class="row">
+                                                                                        <div class="col-md-12">
+                                                                                            <h4>
+                                                                                                You are not currently in a Household.  Navigate the tabs below to learn how to get started!
+                                                                                            </h4>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div class="row">
+                                                                                        <div class="col-md-12">
+                                                                                            <ul class="nav nav-tabs">
+                                                                                                <li class="active"><a data-toggle="tab" href="#create">Create A Household</a></li>
+                                                                                                @*<li><a data-toggle="tab" href="#findhousehold">Find A Household</a></li>*@
+                                                                                                <li><a data-toggle="tab" href="#joinbyinvite">Already Have An Invitation?</a></li>
+                                                                                            </ul>
+                                                                                            <div class="tab-content">
+                                                                                                <div id="create" class="tab-pane fade in active">
+                                                                                                    <h3>Creating Your Household</h3>
+                                                                                                    <p>
+                                                                                                        You can create a new Household by <a href="@Url.Action("Create", "Households")">clicking here</a>.  When you create a new
+                                                                                                        Household, you will automatically be assigned as the Head Of Household, which gives you administrative control over all
+                                                                                                        aspects of the Household on <span class="brand"><strong>abacus</strong></span>.  Once you have finished creating your Household, you will
+                                                                                                        be given your unique Household Key, which you can give to your family members, along with a Password of your choosing.
+                                                                                                        With those two pieces of information, they can find and join your Household.
+                                                                                                    </p>
+                                                                                                    <p>
+                                                                                                        As the head of a newly created Household, you will need to begin setting up the Budgets and Accounts that you want to
+                                                                                                        keep track of in <span class="brand"><strong>abacus</strong></span>.  There are helpful guides all along the way, to keep you on track,
+                                                                                                        and you can view a comprehensive guide by clicking on your name in the top right corner of the screen, and then clicking
+                                                                                                        on "Help".
+                                                                                                    </p>
+                                                                                                </div>
+                                                                                                @*<div id="findhousehold" class="tab-pane fade">
+                                                                                                    <h3>Finding Your Household</h3>
+                                                                                                    <p>
+                                                                                                        If you need to join an existing Household, but do not know your Household Key or Password, you can search by Household
+                                                                                                        name or by the name of one of your family members that are already in the Household.  When you find the correct one, you
+                                                                                                        can click on the "Request To Join" link.  The assigned Head Of Household will recieve both an E-Mail and a notification
+                                                                                                        in <span class="brand"><strong>abacus</strong></span> to let them know that you are trying to join.  After your request
+                                                                                                        is accepted, you will also be notified by E-Mail and within the <span class="brand"><strong>abacus</strong></span> application.
+                                                                                                    </p>
+                                                                                                </div>*@
+                                                                                                <div id="joinbyinvite" class="tab-pane fade">
+                                                                                                    <h3>Joining Your Household With An Invitation</h3>
+                                                                                                    <p>
+                                                                                                        Invitations to join an <span class="brand"><strong>abacus</strong></span> household can take two different forms.  The first
+                                                                                                        type of invitation is send through E-Mail by the Head Of Household.  If you have this kind of invitation, all you need to do
+                                                                                                        is click on the link in the E-Mail.  If you are not already signed up for an <span class="brand"><strong>abacus</strong></span>
+                                                                                                        account, you will need to register, after which you will automatically be assigned as a Member of the Household that you were
+                                                                                                        invited to join.
+                                                                                                    </p>
+                                                                                                    <p>
+                                                                                                        If you do not have an E-Mail invitation, you can still join a Household.  All you need is the Household Key and the Household
+                                                                                                        Password (created by the Head Of Household).  The Key is a unique nine-character, alphanumeric code that is randomly generated
+                                                                                                        by the <span class="brand"><strong>abacus</strong></span> system, and every Head Of Household can view the Key for their own
+                                                                                                        Household, as well as set and change the Password required to join the Household with the Key.  If you have your Household's
+                                                                                                        Key and Password, click <a href="@Url.Action("Join", "Households")">here</a> to use them to join!
+                                                                                                    </p>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+
+                                                                                }
 </div>
+<option id="entrance" value="bounceInDown"></option>
+<option id="exit" value="fadeOutUpBig"></option>
+
+@section scripts
+{
+    <script type="text/javascript">
+
+        $(function () {
+            var processed_json_1 = new Array();
+            var processed_json_2 = new Array();
+            $.getJSON("@Url.Action("GetBudgetChartData", "Home")", function (data) {
+                // Populate series
+                for (i = 0; i < data.length; i++) {
+                    processed_json_1.push([data[i].Name, data[i].TargetAmt]);
+                }
+                for (i = 0; i < data.length; i++) {
+                    processed_json_2.push([data[i].Name, data[i].ActualAmt]);
+                }
+
+                // draw chart
+                $('#budgetCharts').highcharts({
+                    chart: {
+                        type: "column"
+                    },
+                    title: {
+                        text: "Your Household's Budgets"
+                    },
+                    xAxis: {
+                        type: 'category',
+                        allowDecimals: false,
+                        title: {
+                            text: ""
+                        }
+                    },
+                    yAxis: {
+                        title: {
+                            text: "Dollars ($)"
+                        }
+                    },
+                    series: [{
+                        name: "Target Amount",
+                        data: processed_json_1
+
+                    }, {
+                        name: "Actual Amount",
+                        data: processed_json_2
+
+                    }]
+                });
+            });
+        });
+
+
+        $('a.transaction-link').hover(
+            function () {
+                $(this).closest('a').css("background-color", "grey");
+            },
+            function () {
+                $(this).closest('a').css("background-color", "white");
+            }
+        );
+
+        function testAnim(x) {
+            $('.modal .modal-dialog').attr('class', 'modal-dialog  ' + x + '  animated');
+        };
+        $('#transactionModal').on('show.bs.modal', function (e) {
+            var anim = $('#entrance').val();
+            testAnim(anim);
+        })
+        $('#transactionModal').on('hide.bs.modal', function (e) {
+            var anim = $('#exit').val();
+            testAnim(anim);
+        })
+        $('#removeAccountModal').on('show.bs.modal', function (e) {
+            var anim = $('#entrance').val();
+            testAnim(anim);
+        })
+        $('#removeAccountModal').on('hide.bs.modal', function (e) {
+            var anim = $('#exit').val();
+            testAnim(anim);
+        })
+        $('.modal').on('show.bs.modal', function (e) {
+            var anim = $('#entrance').val();
+            testAnim(anim);
+        })
+        $('.modal').on('hide.bs.modal', function (e) {
+            var anim = $('#exit').val();
+            testAnim(anim);
+        })
+    </script>
+}

@@ -9,12 +9,13 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using FinancialPlanner.Models;
+using FinancialPlanner.Helpers;
 
 namespace FinancialPlanner.Controllers
 {
-    [Authorize]
     public class AccountController : Controller
     {
+        private ApplicationDbContext db = new ApplicationDbContext();
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
 
@@ -94,6 +95,7 @@ namespace FinancialPlanner.Controllers
         //
         // GET: /Account/VerifyCode
         [AllowAnonymous]
+        [NoDirectAccess]
         public async Task<ActionResult> VerifyCode(string provider, string returnUrl, bool rememberMe)
         {
             // Require that the user has already logged in via username/password or external login
@@ -109,6 +111,7 @@ namespace FinancialPlanner.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
+        [NoDirectAccess]
         public async Task<ActionResult> VerifyCode(VerifyCodeViewModel model)
         {
             if (!ModelState.IsValid)
@@ -151,17 +154,92 @@ namespace FinancialPlanner.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                var user = new ApplicationUser { UserName = model.Email, Email = model.Email, FirstName = model.FirstName, LastName = model.LastName, DisplayName = model.Email.Remove(model.Email.IndexOf('@')) };
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
+                    //UserManager.AddToRole(user.Id, "Guest");
+                    Utilities.AddUserToRole(user.Id, "Guest");
                     await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
-                    
+
                     // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
                     // Send an email with this link
-                    // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
-                    // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
-                    // await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
+                    string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
+                    var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                    await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
+
+                    return RedirectToAction("Index", "Home");
+                }
+                AddErrors(result);
+            }
+
+            // If we got this far, something failed, redisplay form
+            return View(model);
+        }
+
+        //
+        // GET: /Account/Register
+        [AllowAnonymous]
+        public ActionResult InvitationRegister(int household, string code)
+        {
+            var invitation = db.Invitations.FirstOrDefault(i => i.Code == code);
+            if (invitation == null)
+            {
+                return RedirectToAction("InviteNotFound");
+            }
+            if (DateTime.Compare(invitation.ExpireDate, DateTime.Now) < 0 || invitation.Expired == true)
+            {
+                return RedirectToAction("InviteExpired");
+            }
+            InvitationRegisterViewModel inviteRVM = new InvitationRegisterViewModel();
+            inviteRVM.HouseholdId = household;
+            inviteRVM.FirstName = invitation.FirstName;
+            inviteRVM.LastName = invitation.LastName;
+            inviteRVM.Email = invitation.Email;
+            inviteRVM.Code = code;
+            return View(inviteRVM);
+        }
+
+        [NoDirectAccess]
+        [AllowAnonymous]
+        public ActionResult InviteExpired()
+        {
+            return View();
+        }
+
+        [NoDirectAccess]
+        [AllowAnonymous]
+        public ActionResult InviteNotFound()
+        {
+            return View();
+        }
+
+        //
+        // POST: /Account/Register
+        [HttpPost]
+        [AllowAnonymous]
+        [NoDirectAccess]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> InvitationRegister(InvitationRegisterViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var invitation = db.Invitations.FirstOrDefault(i => i.Code == model.Code);
+                var user = new ApplicationUser { UserName = model.Email, Email = model.Email, FirstName = model.FirstName, LastName = model.LastName, DisplayName = model.Email.Remove(model.Email.IndexOf('@')), HouseholdId = model.HouseholdId };
+                var result = await UserManager.CreateAsync(user, model.Password);
+                UserManager.AddToRole(user.Id, "Member Of Household");
+                if (result.Succeeded)
+                {
+                    invitation.Accepted = true;
+                    db.Entry(invitation).State = System.Data.Entity.EntityState.Modified;
+                    db.SaveChanges();
+                    await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
+
+                    // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
+                    // Send an email with this link
+                    string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
+                    var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                    await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
 
                     return RedirectToAction("Index", "Home");
                 }
@@ -175,6 +253,7 @@ namespace FinancialPlanner.Controllers
         //
         // GET: /Account/ConfirmEmail
         [AllowAnonymous]
+        [NoDirectAccess]
         public async Task<ActionResult> ConfirmEmail(string userId, string code)
         {
             if (userId == null || code == null)
@@ -188,6 +267,7 @@ namespace FinancialPlanner.Controllers
         //
         // GET: /Account/ForgotPassword
         [AllowAnonymous]
+        [NoDirectAccess]
         public ActionResult ForgotPassword()
         {
             return View();
@@ -198,12 +278,13 @@ namespace FinancialPlanner.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
+        [NoDirectAccess]
         public async Task<ActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
             if (ModelState.IsValid)
             {
                 var user = await UserManager.FindByNameAsync(model.Email);
-                if (user == null || !(await UserManager.IsEmailConfirmedAsync(user.Id)))
+                if (user == null)
                 {
                     // Don't reveal that the user does not exist or is not confirmed
                     return View("ForgotPasswordConfirmation");
@@ -211,19 +292,41 @@ namespace FinancialPlanner.Controllers
 
                 // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
                 // Send an email with this link
-                // string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
-                // var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);		
-                // await UserManager.SendEmailAsync(user.Id, "Reset Password", "Please reset your password by clicking <a href=\"" + callbackUrl + "\">here</a>");
-                // return RedirectToAction("ForgotPasswordConfirmation", "Account");
+                string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
+                var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                await UserManager.SendEmailAsync(user.Id, "Reset Password", "Please reset your password by clicking <a href=\"" + callbackUrl + "\">here</a>");
+                return RedirectToAction("ForgotPasswordConfirmation", "Account");
             }
 
             // If we got this far, something failed, redisplay form
             return View(model);
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        [NoDirectAccess]
+        public ActionResult ResendEmailConfirmation()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        [NoDirectAccess]
+        public async Task<ActionResult> ResendEmailConfirmation(ForgotPasswordViewModel model)
+        {
+            var user = await UserManager.FindByNameAsync(model.Email);
+            if (user != null) { string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id); var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme); await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>"); }
+            return RedirectToAction("ConfirmationSent");
+        }
+
+        public ActionResult ConfimationSent() { return View(); }
+
         //
         // GET: /Account/ForgotPasswordConfirmation
         [AllowAnonymous]
+        [NoDirectAccess]
         public ActionResult ForgotPasswordConfirmation()
         {
             return View();
@@ -232,6 +335,7 @@ namespace FinancialPlanner.Controllers
         //
         // GET: /Account/ResetPassword
         [AllowAnonymous]
+        [NoDirectAccess]
         public ActionResult ResetPassword(string code)
         {
             return code == null ? View("Error") : View();
@@ -266,6 +370,7 @@ namespace FinancialPlanner.Controllers
         //
         // GET: /Account/ResetPasswordConfirmation
         [AllowAnonymous]
+        [NoDirectAccess]
         public ActionResult ResetPasswordConfirmation()
         {
             return View();
@@ -276,6 +381,7 @@ namespace FinancialPlanner.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
+        [NoDirectAccess]
         public ActionResult ExternalLogin(string provider, string returnUrl)
         {
             // Request a redirect to the external login provider
@@ -285,6 +391,7 @@ namespace FinancialPlanner.Controllers
         //
         // GET: /Account/SendCode
         [AllowAnonymous]
+        [NoDirectAccess]
         public async Task<ActionResult> SendCode(string returnUrl, bool rememberMe)
         {
             var userId = await SignInManager.GetVerifiedUserIdAsync();
@@ -302,6 +409,7 @@ namespace FinancialPlanner.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
+        [NoDirectAccess]
         public async Task<ActionResult> SendCode(SendCodeViewModel model)
         {
             if (!ModelState.IsValid)
@@ -320,6 +428,7 @@ namespace FinancialPlanner.Controllers
         //
         // GET: /Account/ExternalLoginCallback
         [AllowAnonymous]
+        [NoDirectAccess]
         public async Task<ActionResult> ExternalLoginCallback(string returnUrl)
         {
             var loginInfo = await AuthenticationManager.GetExternalLoginInfoAsync();
@@ -352,6 +461,7 @@ namespace FinancialPlanner.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
+        [NoDirectAccess]
         public async Task<ActionResult> ExternalLoginConfirmation(ExternalLoginConfirmationViewModel model, string returnUrl)
         {
             if (User.Identity.IsAuthenticated)
@@ -387,17 +497,18 @@ namespace FinancialPlanner.Controllers
 
         //
         // POST: /Account/LogOff
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
         public ActionResult LogOff()
         {
             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Login", "Account");
         }
 
         //
         // GET: /Account/ExternalLoginFailure
         [AllowAnonymous]
+        [NoDirectAccess]
         public ActionResult ExternalLoginFailure()
         {
             return View();

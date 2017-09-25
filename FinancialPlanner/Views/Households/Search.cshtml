@@ -1,0 +1,23 @@
+﻿
+@{
+    ViewBag.Title = "Household Search";
+}
+
+<h2 class="brand">@ViewBag.Title</h2>
+
+@using (Html.BeginForm("Search", "Households", FormMethod.Get, htmlAttributes: new { @class = "form form-horizontal" }))
+{
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div class="form-group">
+        <label class="control-label col-md-2">Search By Household Name or Members</label>
+        <div class="col-md-10">
+            <input id="searchStr" name="searchStr" class="form-control" type="text" placeholder="search" autofocus="autofocus" />
+        </div>
+    </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Save" class="btn btn-default" />
+            </div>
+        </div>
+}

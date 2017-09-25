@@ -1,0 +1,27 @@
+﻿@model FinancialPlanner.Models.LeaveHouseholdViewModel
+@using Microsoft.AspNet.Identity;
+@using FinancialPlanner.Helpers;
+@{
+    ViewBag.Title = "Leave Household";
+}
+
+<h2>@ViewBag.Title.</h2>
+@using (Html.BeginForm("LeaveHousehold", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+{
+    @Html.AntiForgeryToken()
+    <h4>Are you sure you want to leave this Household?</h4><br />
+    <h5>You will not be able to rejoin unless you are invited by the Head Of Household.</h5>
+    <hr />
+    <div class="form-group">
+        You are about to leave the @Utilities.GetUsersHousehold(User.Identity.GetUserId()).Name Household.  Do you want to continue?
+        <div class="col-md-10">
+            @Html.HiddenFor(m => m.HouseholdId)
+            <input type="submit" value="Yes, I Want To Leave This Household" class="btn btn-success" />
+            <a href="@Url.Action("Index")" class="btn btn-danger">No, I Want To Stay In This Household</a>
+        </div>
+    </div>
+}
+    
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

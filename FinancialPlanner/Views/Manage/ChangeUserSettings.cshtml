@@ -1,0 +1,160 @@
+﻿@using FinancialPlanner.Helpers;
+@using Microsoft.AspNet.Identity;
+@{
+    ViewBag.Title = "Change Your Settings";
+}
+
+<h2>@ViewBag.Title.</h2>
+
+@using (Html.BeginForm("ChangeUserSettings", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+{
+    @Html.AntiForgeryToken()
+    if (User.IsInRole("Head Of Household"))
+    {
+        <hr />
+        <h4>Set Low Balance Alert</h4>
+        <p>
+            <span class="brand">abacus financial planner</span> will notify you if your account falls below a certain amount.  By default, this 
+            threshold is set at $25.00, but you can change that amount here.
+        </p>
+        <div class="form-group">
+            <div class="input-group">
+                <div class="input-group-addon">$</div>
+                <input class="form-control" type="number" min="0" step=".01" placeholder="@Utilities.GetUsersBalanceWarning(User.Identity.GetUserId())" name="BalanceWarning" />
+            </div>
+        </div>
+    }
+    <hr />
+    <h4>Choose A Display Setting</h4>
+    <div class="form-group">
+        <div class="col-sm-4">
+            @if (Utilities.GetUsersDisplaySettings(User.Identity.GetUserId()) == "panel-primary")
+            {
+                <label class="radio-inline"><input type="radio" name="DisplayColor" value="panel-primary" checked="checked" />Primary</label>
+            }
+            else
+            {
+                <label class="radio-inline"><input type="radio" name="DisplayColor" value="panel-primary" />Primary</label>
+            }
+            <div class="panel panel-primary">
+                <div class="panel-heading">Primary</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            @if (Utilities.GetUsersDisplaySettings(User.Identity.GetUserId()) == "panel-danger")
+            {
+                <label class="radio-inline"><input type="radio" name="DisplayColor" value="panel-danger" checked="checked" />Danger</label>
+            }
+            else
+            {
+                <label class="radio-inline"><input type="radio" name="DisplayColor" value="panel-danger" />Danger</label>
+            }
+            <div class="panel panel-danger">
+                <div class="panel-heading">Danger</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            @if (Utilities.GetUsersDisplaySettings(User.Identity.GetUserId()) == "panel-green")
+            {
+                <label class="radio-inline"><input type="radio" name="DisplayColor" value="panel-green" checked="checked" />Green</label>
+            }
+            else
+            {
+                <label class="radio-inline"><input type="radio" name="DisplayColor" value="panel-green" />Green</label>
+            }
+            <div class="panel panel-green">
+                <div class="panel-heading">Green</div>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-4">
+            @if (Utilities.GetUsersDisplaySettings(User.Identity.GetUserId()) == "panel-info")
+            {
+                <label class="radio-inline"><input type="radio" name="DisplayColor" value="panel-info" checked="checked" />Info</label>
+            }
+            else
+            {
+                <label class="radio-inline"><input type="radio" name="DisplayColor" value="panel-info" />Info</label>
+            }
+            <div class="panel panel-info">
+                <div class="panel-heading">Info</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            @if (Utilities.GetUsersDisplaySettings(User.Identity.GetUserId()) == "panel-default")
+            {
+                <label class="radio-inline"><input type="radio" name="DisplayColor" value="panel-default" checked="checked" />Default</label>
+            }
+            else
+            {
+                <label class="radio-inline"><input type="radio" name="DisplayColor" value="panel-default" />Default</label>
+            }
+            <div class="panel panel-default">
+                <div class="panel-heading">Default</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            @if (Utilities.GetUsersDisplaySettings(User.Identity.GetUserId()) == "panel-red")
+            {
+                <label class="radio-inline"><input type="radio" name="DisplayColor" value="panel-red" checked="checked" />Red</label>
+            }
+            else
+            {
+                <label class="radio-inline"><input type="radio" name="DisplayColor" value="panel-red" />Red</label>
+            }
+            <div class="panel panel-red">
+                <div class="panel-heading">Red</div>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-4">
+            @if (Utilities.GetUsersDisplaySettings(User.Identity.GetUserId()) == "panel-success")
+            {
+                <label class="radio-inline"><input type="radio" name="DisplayColor" value="panel-success" checked="checked" />Success</label>
+            }
+            else
+            {
+                <label class="radio-inline"><input type="radio" name="DisplayColor" value="panel-success" />Success</label>
+            }
+            <div class="panel panel-success">
+                <div class="panel-heading">Success</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            @if (Utilities.GetUsersDisplaySettings(User.Identity.GetUserId()) == "panel-warning")
+            {
+                <label class="radio-inline"><input type="radio" name="DisplayColor" value="panel-warning" checked="checked" />Warning</label>
+            }
+            else
+            {
+                <label class="radio-inline"><input type="radio" name="DisplayColor" value="panel-warning" />Warning</label>
+            }
+            <div class="panel panel-warning">
+                <div class="panel-heading">Warning</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            @if (Utilities.GetUsersDisplaySettings(User.Identity.GetUserId()) == "panel-yellow")
+            {
+                <label class="radio-inline"><input type="radio" name="DisplayColor" value="panel-yellow" checked="checked" />Yellow</label>
+            }
+            else
+            {
+                <label class="radio-inline"><input type="radio" name="DisplayColor" value="panel-yellow" />Yellow</label>
+            }
+            <div class="panel panel-yellow">
+                <div class="panel-heading">Yellow</div>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="submit" value="Save Changes" class="btn btn-default" />
+        </div>
+    </div>
+}
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

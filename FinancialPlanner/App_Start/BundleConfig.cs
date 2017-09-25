@@ -26,6 +26,27 @@ namespace FinancialPlanner
             bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",
                       "~/Content/site.css"));
+
+            bundles.Add(new StyleBundle("~/bundles/templatestyles").Include(
+                      "~/css/bootstrap.min.css",
+                      "~/css/sb-admin.css",
+                      "~/css/plugins/morris.css",
+                      "~/font-awesome/css/font-awesome.min.css",
+                      "~/css/animate.css",
+                      "~/css/highcharts.css",
+                      "~/Content/DataTables/css/jquery.dataTables.min.css"
+                      ));
+
+            bundles.Add(new ScriptBundle("~/bundles/templatescripts").Include(
+                      "~/js/jquery.js",
+                      "~/js/bootstrap.min.js",
+                      "~/js/plugins/morris/raphael.min.js",
+                      "~/js/plugins/morris/morris.min.js",
+                      "~/js/date.js",
+                      "~/js/highcharts.js",
+                      "~/js/custom.js",
+                      "~/Scripts/DataTables/jquery.dataTables.min.js"
+                ));
         }
     }
 }

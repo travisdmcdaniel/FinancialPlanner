@@ -1,0 +1,43 @@
+﻿@model FinancialPlanner.Models.InviteViewModel
+@using FinancialPlanner.Helpers;
+@{
+    ViewBag.Title = "Invite To Your Household";
+}
+
+<h1 style="float:left;" class="brand">@ViewBag.Title</h1>
+<h2 style="float:right;" class="brand">@Utilities.GetHouseholdName(@ViewBag.HouseholdId)</h2>
+<div class="clearfix"></div>
+<div class="row panel panel-primary" style="padding-top:50px;">
+    <div class="col-md-4 col-md-offset-4">
+        <div class="login-panel panel panel-default">
+            @*panel-default*@
+            <div class="panel-heading">
+                <h3 class="panel-title">Who Would You Like To Invite?</h3>
+            </div>
+            <div class="panel-body" style="padding-bottom:10px;margin-bottom:0;">
+                @using (Html.BeginForm("Invite", "Households", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <fieldset>
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                        @Html.HiddenFor(m => m.HouseholdId)
+                        <div class="form-group">
+                            @Html.TextBoxFor(m => m.FirstName, new { @class = "form-control", placeholder = "First Name", name = "firstname", style = "max-width:100%", type = "text", autofocus = "autofocus" })
+                            @Html.ValidationMessageFor(m => m.FirstName, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="form-group">
+                            @Html.TextBoxFor(m => m.LastName, new { @class = "form-control", placeholder = "Last Name", name = "lastname", style = "max-width:100%", type = "text" })
+                            @Html.ValidationMessageFor(m => m.LastName, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="form-group">
+                            @Html.TextBoxFor(m => m.InviteEmail, new { @class = "form-control", placeholder = "E-mail", name = "email", style = "max-width:100%", type = "email" })
+                            @Html.ValidationMessageFor(m => m.InviteEmail, "", new { @class = "text-danger" })
+                        </div>
+                        <!-- Change this to a button or input when using this as a form -->
+                        <input type="submit" value="Send Invitation" class="btn btn-lg btn-success btn-block" />
+                    </fieldset>
+                }
+            </div>
+        </div>
+    </div>
+</div>
